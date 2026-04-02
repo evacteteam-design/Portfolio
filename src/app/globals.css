@@ -1,0 +1,207 @@
+@import "tailwindcss";
+
+/* ══════════════════════════════════════
+   DESIGN TOKENS
+   ══════════════════════════════════════ */
+:root {
+  /* Neutrals – ocean-tinted */
+  --black: #0B1929;
+  --ink: #162A42;
+  --ink2: #4A6580;
+  --ink3: #7C9AB5;
+  --border: #C8DCF0;
+  --surface: #EAF2FB;
+  --white: #F6FAFF;
+
+  /* Accent – sky / ocean blue */
+  --accent: #1A7DD4;
+  --accent-light: #4BA3E3;
+  --accent-dark: #0C3A5E;
+
+  /* Semantic */
+  --success: #1A6B35;
+  --warning: #E8A020;
+  --danger: #D94F4F;
+
+  /* Typography scale */
+  --text-xs: 0.6875rem;   /* 11px */
+  --text-sm: 0.8125rem;   /* 13px */
+  --text-base: 1rem;      /* 16px */
+  --text-lg: 1.125rem;    /* 18px */
+  --text-xl: 1.5rem;      /* 24px */
+  --text-2xl: clamp(2rem, 3.8vw, 3.375rem);
+  --text-hero: clamp(3.5rem, 8vw, 7.25rem);
+
+  /* Spacing scale */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 32px;
+  --space-xl: 56px;
+  --space-2xl: 96px;
+
+  /* Radii */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  /* Motion */
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --dur-fast: 0.2s;
+  --dur-normal: 0.45s;
+  --dur-slow: 0.7s;
+  --dur-reveal: 0.85s;
+
+  /* Layout */
+  --max-w: 1200px;
+  --max-w-narrow: 760px;
+}
+
+@theme inline {
+  --color-background: var(--white);
+  --color-foreground: var(--ink);
+  --font-sans: var(--font-poppins);
+  --font-serif: var(--font-instrument-serif);
+  --font-mono: var(--font-dm-mono);
+}
+
+/* ══════════════════════════════════════
+   BASE
+   ══════════════════════════════════════ */
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--font-sans, 'Poppins', sans-serif);
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+  background-image: linear-gradient(175deg, #F6FAFF 0%, #EDF5FE 50%, #F6FAFF 100%);
+  background-attachment: fixed;
+}
+
+::selection {
+  background: var(--accent-light);
+  color: white;
+}
+
+/* ══════════════════════════════════════
+   SMOOTH SCROLL + LENIS OVERRIDES
+   ══════════════════════════════════════ */
+html.lenis, html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+/* ══════════════════════════════════════
+   REVEAL ANIMATIONS
+   ══════════════════════════════════════ */
+.reveal {
+  opacity: 0;
+  transform: translateY(32px);
+  transition: opacity var(--dur-reveal) var(--ease-out-expo),
+              transform var(--dur-reveal) var(--ease-out-expo);
+}
+.reveal.in-view {
+  opacity: 1;
+  transform: none;
+}
+.reveal-left {
+  opacity: 0;
+  transform: translateX(-40px);
+  transition: opacity var(--dur-reveal) var(--ease-out-expo),
+              transform var(--dur-reveal) var(--ease-out-expo);
+}
+.reveal-left.in-view {
+  opacity: 1;
+  transform: none;
+}
+.reveal-right {
+  opacity: 0;
+  transform: translateX(40px);
+  transition: opacity var(--dur-reveal) var(--ease-out-expo),
+              transform var(--dur-reveal) var(--ease-out-expo);
+}
+.reveal-right.in-view {
+  opacity: 1;
+  transform: none;
+}
+.reveal-scale {
+  opacity: 0;
+  transform: scale(0.95);
+  transition: opacity var(--dur-reveal) var(--ease-out-expo),
+              transform var(--dur-reveal) var(--ease-out-expo);
+}
+.reveal-scale.in-view {
+  opacity: 1;
+  transform: none;
+}
+
+/* Stagger delays */
+.delay-1 { transition-delay: 0.08s; }
+.delay-2 { transition-delay: 0.16s; }
+.delay-3 { transition-delay: 0.24s; }
+.delay-4 { transition-delay: 0.32s; }
+.delay-5 { transition-delay: 0.40s; }
+
+/* Hero entrance keyframes */
+@keyframes hero-up {
+  from { opacity: 0; transform: translateY(28px); }
+  to   { opacity: 1; transform: none; }
+}
+.hero-anim-1 { animation: hero-up 0.7s 0.1s var(--ease-out-expo) both; }
+.hero-anim-2 { animation: hero-up 0.75s 0.25s var(--ease-out-expo) both; }
+.hero-anim-3 { animation: hero-up 0.7s 0.4s var(--ease-out-expo) both; }
+.hero-anim-4 { animation: hero-up 0.7s 0.55s var(--ease-out-expo) both; }
+.hero-anim-5 { animation: hero-up 0.75s 0.7s var(--ease-out-expo) both; }
+
+/* Hero accent word — subtle glow pulse */
+@keyframes hero-glow-pulse {
+  0%, 100% { text-shadow: 0 0 40px rgba(75,163,227,0.25); }
+  50%       { text-shadow: 0 0 80px rgba(75,163,227,0.55), 0 0 160px rgba(75,163,227,0.15); }
+}
+.hero-accent-glow {
+  animation: hero-glow-pulse 4s ease-in-out infinite;
+}
+
+/* Draw-in rule line */
+@keyframes draw-line {
+  from { transform: scaleX(0); }
+  to   { transform: scaleX(1); }
+}
+.hero-rule {
+  transform-origin: left;
+  animation: draw-line 0.9s 0.45s var(--ease-out-expo) both;
+}
+
+/* ══════════════════════════════════════
+   PARALLAX UTILITY
+   ══════════════════════════════════════ */
+.parallax-slow {
+  will-change: transform;
+}
+
+/* ══════════════════════════════════════
+   REDUCED MOTION
+   ══════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .reveal, .reveal-left, .reveal-right, .reveal-scale {
+    opacity: 1;
+    transform: none;
+  }
+}
