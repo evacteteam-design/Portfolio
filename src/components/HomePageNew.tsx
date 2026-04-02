@@ -470,8 +470,8 @@ export default function HomePage() {
                     style={{
                       clipPath: "url(#blobClip)",
                       backgroundImage: "url('/images/my-image.jpeg')",
-                      backgroundSize: "120% auto",
-                      backgroundPosition: "120% 35%",
+                      backgroundSize: "cover",
+                      backgroundPosition: "50% 25%",
                     }}
                   />
                 </div>
