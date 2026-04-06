@@ -265,7 +265,7 @@ export default function HomePage() {
               {[
                 { end: 12, suffix: "+", label: "Years\nExperience" },
                 { end: 82, suffix: "+", label: "Enterprise\nProjects" },
-                { end: 3, suffix: "", label: "Industries\nServed" },
+                { end: 3, suffix: "x", label: "Faster\nHandoff" },
               ].map(({ end, suffix, label }) => (
                 <div key={label} className="text-right">
                   <p className="font-[family-name:var(--font-instrument-serif)] text-[clamp(1.4rem,3vw,2.4rem)] leading-none text-white mb-1.5"

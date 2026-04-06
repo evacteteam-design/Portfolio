@@ -59,17 +59,22 @@ export function Navbar() {
       </Link>
 
       <div className="relative flex items-center gap-4 sm:gap-8">
-        {["Work", "About", "Contact"].map((item) => (
+        {[
+          { label: "Work", href: "/#work" },
+          { label: "About", href: "/#about" },
+          { label: "AI Lab", href: "/ai-lab" },
+          { label: "Contact", href: "/#contact" },
+        ].map(({ label, href }) => (
           <Link
-            key={item}
-            href={`/#${item.toLowerCase()}`}
+            key={label}
+            href={href}
             className={`text-[10px] sm:text-[11px] font-semibold tracking-[0.08em] sm:tracking-[0.1em] uppercase transition-colors duration-300 ${
               showLight
                 ? "text-white/75 hover:text-white"
                 : "text-[var(--ink3)] hover:text-[var(--ink)]"
             }`}
           >
-            {item}
+            {label}
           </Link>
         ))}
       </div>

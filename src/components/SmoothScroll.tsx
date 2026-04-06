@@ -1,10 +1,19 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useLayoutEffect } from "react";
+import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 
 export function SmoothScroll({ children }: { children: React.ReactNode }) {
-  const lenisRef = useRef<Lenis | null>(null);
+  const pathname = usePathname();
+
+  // Fires synchronously BEFORE the browser paints — guarantees scroll
+  // is at 0 before the user ever sees the new page.
+  useLayoutEffect(() => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }, [pathname]);
 
   useEffect(() => {
     const lenis = new Lenis({
@@ -12,10 +21,11 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       touchMultiplier: 2,
     });
-    lenisRef.current = lenis;
 
-    // Intercept all anchor hash clicks and route through Lenis
-    // so the first click always scrolls (native hash nav is suppressed by Lenis CSS)
+    // Force Lenis to start at 0 in case it read a stale scroll position
+    lenis.scrollTo(0, { immediate: true });
+
+    // Intercept hash-anchor clicks and route through Lenis
     const handleAnchorClick = (e: MouseEvent) => {
       const anchor = (e.target as HTMLElement).closest("a[href]") as HTMLAnchorElement | null;
       if (!anchor) return;
@@ -26,7 +36,7 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
       if (href.startsWith("#")) {
         hash = href;
       } else if (href.startsWith("/#") && window.location.pathname === "/") {
-        hash = href.slice(1); // strip leading "/"
+        hash = href.slice(1);
       }
 
       if (!hash) return;
@@ -40,17 +50,20 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
 
     document.addEventListener("click", handleAnchorClick);
 
+    let rafId: number;
     function raf(time: number) {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      rafId = requestAnimationFrame(raf);
     }
-    requestAnimationFrame(raf);
+    rafId = requestAnimationFrame(raf);
 
     return () => {
+      cancelAnimationFrame(rafId);
       document.removeEventListener("click", handleAnchorClick);
       lenis.destroy();
     };
-  }, []);
+  }, [pathname]);
 
   return <>{children}</>;
 }
+

@@ -51,6 +51,10 @@ export default function RootLayout({
       lang="en"
       className={`${baloo2.variable} ${poppins.variable} ${dmMono.variable}`}
     >
+      <head>
+        {/* Disable browser scroll restoration before any JS runs */}
+        <script dangerouslySetInnerHTML={{ __html: 'history.scrollRestoration="manual"' }} />
+      </head>
       <body>
         <SmoothScroll>
           <Navbar />
