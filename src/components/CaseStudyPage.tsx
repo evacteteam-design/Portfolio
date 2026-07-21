@@ -4,12 +4,12 @@ import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Reveal } from "@/components/Reveal";
-import type { CaseStudy } from "@/content/caseStudies";
+import type { CaseStudy, StudyTabId } from "@/content/caseStudies";
 
 export function CaseStudyPage({ study }: { study: CaseStudy }) {
   const [progress, setProgress] = useState(0);
   const [navMode, setNavMode] = useState<"hero" | "page">("hero");
-  const [activeTab, setActiveTab] = useState("problem");
+  const [activeTab, setActiveTab] = useState<StudyTabId>("problem");
 
   useEffect(() => {
     const onScroll = () => {
@@ -30,6 +30,12 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
   const processSection = study.sections.find((s) => s.id === "process");
   const decisionsSection = study.sections.find((s) => s.id === "decisions");
   const constraintsSection = study.sections.find((s) => s.id === "constraints");
+  const tabOrder: StudyTabId[] = ["problem", "solution", "challenge", "summary"];
+  const activeTabData = study.tabs?.find((tab) => tab.id === activeTab);
+  const navItems = ["context", "research", "decisions", "impact"];
+  if (study.beforeAfter && study.beforeAfter.length > 0) {
+    navItems.splice(1, 0, "before-after");
+  }
 
   return (
     <>
@@ -56,7 +62,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
           ← Akhil Vanga
         </Link>
         <div className="hidden md:flex gap-8">
-          {["context", "before-after", "research", "decisions", "impact"].map((id) => (
+          {navItems.map((id) => (
             <a
               key={id}
               href={`#${id}`}
@@ -184,7 +190,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                 {contextSection.titleAccent && (
                   <em className="italic text-[var(--accent)]">{contextSection.titleAccent}</em>
                 )}
-                <br />Every scheduling decision they make.
+                <br />{study.contextTail ?? "Every scheduling decision they make."}
               </h2>
             </Reveal>
 
@@ -381,7 +387,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                 {researchSection.titleAccent && (
                   <em className="italic text-[var(--accent)]">{researchSection.titleAccent}</em>
                 )}
-                <br />It was dread.
+                <br />{study.researchTail ?? "It was dread."}
               </h2>
             </Reveal>
 
@@ -429,7 +435,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
           <div className="max-w-[var(--max-w)] mx-auto px-4 sm:px-6 md:px-14 mt-12 sm:mt-20">
             <Reveal>
               <div className="flex flex-wrap border border-[var(--border)] rounded-lg overflow-hidden w-fit mb-0">
-                {["problem", "solution", "challenge", "summary"].map((tab) => (
+                {tabOrder.map((tab) => (
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
@@ -452,29 +458,49 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                   {activeTab === "problem" ? "01" : activeTab === "solution" ? "02" : activeTab === "challenge" ? "03" : "04"}
                 </p>
                 <p className="font-[family-name:var(--font-instrument-serif)] text-[22px] sm:text-[28px] leading-snug tracking-[-0.02em] text-[var(--black)] mb-4">
-                  {activeTab === "problem" && "The problem was trust, not confusion"}
-                  {activeTab === "solution" && "Persistent context, inline clarity, visual hierarchy"}
-                  {activeTab === "challenge" && "Enterprise constraints shaped every decision"}
-                  {activeTab === "summary" && "From dreaded tool to trusted daily driver"}
+                  {activeTabData?.title ?? (
+                    <>
+                      {activeTab === "problem" && "The problem was trust, not confusion"}
+                      {activeTab === "solution" && "Persistent context, inline clarity, visual hierarchy"}
+                      {activeTab === "challenge" && "Enterprise constraints shaped every decision"}
+                      {activeTab === "summary" && "From dreaded tool to trusted daily driver"}
+                    </>
+                  )}
                 </p>
                 <p className="text-[15px] text-[var(--ink2)] leading-[1.85] mb-5">
-                  {activeTab === "problem" &&
-                    "10,000+ pilots using a scheduling app they dreaded. Legacy tools forced daily context-switching between two completely siloed systems. The Trade Center had no information hierarchy, no filter memory, no deadhead clarity, and no bid-period context."}
-                  {activeTab === "solution" &&
-                    "Persistent filters eliminate daily setup ritual. Inline trip expansion removes navigation anxiety. Color-coded DH badges solve 18-month complaint. Bid-period context surfaces schedule conflicts before action."}
-                  {activeTab === "challenge" &&
-                    "Built on an established design system across 12+ apps. Complex FAA/union business rules enforced in real-time. Compressed 2-week sprint cycles. Zero downtime tolerance for 10,000+ daily users."}
-                  {activeTab === "summary" &&
-                    "CCS+ Trade Center went from the most-dreaded feature to the most-used. Every design decision was grounded in pilot research, validated through testing, and shipped within engineering constraints."}
+                  {activeTabData?.body ?? (
+                    <>
+                      {activeTab === "problem" &&
+                        "10,000+ pilots using a scheduling app they dreaded. Legacy tools forced daily context-switching between two completely siloed systems. The Trade Center had no information hierarchy, no filter memory, no deadhead clarity, and no bid-period context."}
+                      {activeTab === "solution" &&
+                        "Persistent filters eliminate daily setup ritual. Inline trip expansion removes navigation anxiety. Color-coded DH badges solve 18-month complaint. Bid-period context surfaces schedule conflicts before action."}
+                      {activeTab === "challenge" &&
+                        "Built on an established design system across 12+ apps. Complex FAA/union business rules enforced in real-time. Compressed 2-week sprint cycles. Zero downtime tolerance for 10,000+ daily users."}
+                      {activeTab === "summary" &&
+                        "CCS+ Trade Center went from the most-dreaded feature to the most-used. Every design decision was grounded in pilot research, validated through testing, and shipped within engineering constraints."}
+                    </>
+                  )}
                 </p>
               </div>
               <div className="rounded-lg overflow-hidden border border-[var(--border)] shadow-[0_6px_28px_rgba(0,0,0,0.08)] hover:-translate-y-1 hover:shadow-[0_20px_56px_rgba(0,0,0,0.14)] transition-all duration-300">
-                {(activeTab === "problem" || activeTab === "challenge") ? (
+                {activeTabData ? (
                   <>
+                    {activeTabData.imageUrl && (
+                      <div className="bg-[#F0F0F0] px-3.5 py-2 flex items-center gap-2 border-b border-[var(--border)]">
+                        <div className="flex gap-1">
+                          <div className="w-2 h-2 rounded-full bg-[#FF5F57]" />
+                          <div className="w-2 h-2 rounded-full bg-[#FEBC2E]" />
+                          <div className="w-2 h-2 rounded-full bg-[#28C840]" />
+                        </div>
+                        <span className="text-[11px] font-[family-name:var(--font-dm-mono)] text-[var(--ink3)] bg-black/6 rounded px-2 py-1">
+                          {activeTabData.imageUrl}
+                        </span>
+                      </div>
+                    )}
                     <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
                       <Image
-                        src={activeTab === "problem" ? "/images/pool-display-old.png" : "/images/filter modal to filter trip list.png"}
-                        alt={activeTab === "problem" ? "Legacy Pilot Pool Display" : "Filter trip list modal"}
+                        src={activeTabData.image}
+                        alt={activeTabData.alt}
                         fill
                         className="object-cover"
                         sizes="(max-width: 768px) 100vw, 600px"
@@ -482,8 +508,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                     </div>
                     <div className="px-4 py-3 bg-[var(--surface)] border-t border-[var(--border)]">
                       <p className="text-[12px] text-[var(--ink3)] leading-relaxed">
-                        {activeTab === "problem" && <><strong>Legacy Pilot Pool Display:</strong> A static calendar grid showing raw reserve counts. No trip visualization, no pay data, no sorting. — finding open trips meant reading dozens of undifferentiated cells.</>}
-                        {activeTab === "challenge" && <><strong>Filter Trip List Modal:</strong> CLE/737/Captain pre-populated from pilot profile. Calendar context, availability toggles, save-as-template — one component used everywhere.</>}
+                        <strong>{activeTabData.captionTitle}:</strong> {activeTabData.captionBody}
                       </p>
                     </div>
                   </>

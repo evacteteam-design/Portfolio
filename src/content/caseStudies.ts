@@ -24,6 +24,22 @@ export interface CaseStudy {
   constraints: Constraint[];
   impact: ImpactMetric[];
   beforeAfter?: BeforeAfter[];
+  contextTail?: string;
+  researchTail?: string;
+  tabs?: StudyTab[];
+}
+
+export type StudyTabId = "problem" | "solution" | "challenge" | "summary";
+
+export interface StudyTab {
+  id: StudyTabId;
+  title: string;
+  body: string;
+  image: string;
+  alt: string;
+  captionTitle: string;
+  captionBody: string;
+  imageUrl?: string;
 }
 
 export interface CaseStudySection {
@@ -377,6 +393,221 @@ export const caseStudies: CaseStudy[] = [
         ],
       },
     ],
+  },
+  {
+    slug: "design-system-migration",
+    title: "Design System Migration",
+    subtitle: "At Borouge International: fixing broken libraries and token drift across seven product teams",
+    client: "Borouge International",
+    year: "2026",
+    role: "UI/UX Engineer",
+    platform: "Figma Libraries · Web App",
+    users: "7 product squads",
+    duration: "14 weeks",
+    impactHeadline: "82% fewer token mismatches",
+    tags: ["Design Systems", "Figma", "Migration", "Tokens", "Enterprise"],
+    accentColor: "#1A7DD4",
+    accentDark: "#0C2B4D",
+    heroScreenUrl: "/images/blog/figma-mcp-claude/figma-copy-link.png",
+    heroScreenCaption: "Borouge design system migration - source frame linking and handoff standardization",
+    previewImage: "/images/blog/figma-mcp-claude/chrome-final-product.png",
+    lede: "At Borouge International, I led a design system migration to fix token drift, broken component links, and inconsistent handoff across seven product squads.",
+    contextTail: "It affected every release.",
+    researchTail: "It was accumulated design debt.",
+    sections: [
+      {
+        id: "context",
+        label: "Context",
+        number: "01",
+        title: "One design org.",
+        titleAccent: "Seven different libraries.",
+        body: [
+          "Each squad had drifted into its own library conventions, with duplicated components and inconsistent variable naming.",
+          "My job was to scope, sequence, and execute a migration to one trusted source of truth without slowing product delivery.",
+        ],
+        quote: {
+          text: "Reviews looked fine, but implementation kept drifting because token links and library usage were inconsistent.",
+          cite: "Design system manager, migration kickoff",
+        },
+      },
+      {
+        id: "research",
+        label: "Research & Discovery",
+        number: "02",
+        title: "The issue wasn't",
+        titleAccent: "design quality.",
+        body: [
+          "I audited release defects, component usage, and variable collections. The root issues were structural: alias breaks, detached instances, and inconsistent library publishing.",
+          "I grouped risk into token integrity, component linkage, and publishing discipline before rollout.",
+        ],
+      },
+      {
+        id: "process",
+        label: "Design Process",
+        number: "04",
+        title: "A phased migration,",
+        titleAccent: "not a big-bang rewrite.",
+        body: [
+          "I ran four phases: audit, target model, pilot, and team-by-team rollout with release gates.",
+        ],
+      },
+      {
+        id: "decisions",
+        label: "Key Design Decisions",
+        number: "05",
+        title: "Three decisions that",
+        titleAccent: "kept rollout stable.",
+        body: [
+          "These decisions kept rollout stable while teams continued sprint delivery.",
+        ],
+      },
+      {
+        id: "constraints",
+        label: "Constraints",
+        number: "06",
+        title: "A migration under",
+        titleAccent: "real delivery pressure.",
+        body: [
+          "Migration happened alongside active roadmap work, so adoption had to be incremental and low-risk.",
+        ],
+      },
+    ],
+    stats: [
+      { value: "420", description: "Components audited across legacy libraries", barColor: "#1A7DD4" },
+      { value: "82", suffix: "%", description: "Fewer token mismatch defects after rollout", caveat: "Based on QA logs from the first 6 post-migration weeks", barColor: "#2D9C5A" },
+      { value: "6", suffix: "d", description: "Average handoff cycle time (down from 11 days)", barColor: "#E8A020" },
+      { value: "0", description: "Critical migration regressions after final rollout", barColor: "#D94F4F" },
+    ],
+    insights: [
+      {
+        number: "01",
+        title: "Token aliases were fragile",
+        body: "Alias chains were inconsistent, so small variable updates caused silent semantic breaks.",
+        quote: "We had multiple names for the same color, and none of them were dependable.",
+      },
+      {
+        number: "02",
+        title: "Component detachment was normalized",
+        body: "Detached instances were copied into new work, spreading drift with each sprint.",
+        quote: "Detaching was faster in the moment, but it cost us later.",
+      },
+      {
+        number: "03",
+        title: "Publishing lacked governance",
+        body: "Library updates lacked consistent checks, so some teams over-accepted changes while others avoided updates.",
+        quote: "People avoided update prompts because they did not trust what would break.",
+      },
+    ],
+    tabs: [
+      {
+        id: "problem",
+        title: "We were shipping from too many sources of truth",
+        body: "Seven squads worked from different libraries, causing repeated spacing, typography, and color mismatches.",
+        image: "/images/blog/figma-mcp-claude/figma-copy-link.png",
+        alt: "Figma frame-link workflow before standardization",
+        captionTitle: "Broken flow",
+        captionBody: "Before migration, teams passed specs manually from frame links without a consistent QA layer.",
+      },
+      {
+        id: "solution",
+        title: "One token model, one library workflow",
+        body: "I standardized variable collections, cleaned semantic aliases, and added a repeatable MCP-assisted parity check before handoff.",
+        image: "/images/blog/figma-mcp-claude/ide-paste-link.png",
+        alt: "MCP-assisted prompt workflow used in the new review process",
+        captionTitle: "Assisted validation",
+        captionBody: "MCP-assisted checks reduced manual parity verification and caught token drift earlier.",
+        imageUrl: "mcp / get_figma_data / token-audit",
+      },
+      {
+        id: "challenge",
+        title: "We could not pause delivery to migrate",
+        body: "We ran dual publishing, piloted with two squads, and then migrated team by team without freezing delivery.",
+        image: "/images/blog/figma-mcp-claude/chrome-final-product.png",
+        alt: "Post-migration UI used as acceptance benchmark during phased rollout",
+        captionTitle: "Execution model",
+        captionBody: "Teams kept shipping while rollout progressed in controlled waves with explicit release gates.",
+      },
+      {
+        id: "summary",
+        title: "The system became predictable again",
+        body: "After migration, ownership was clear, token usage stabilized, and QA surprises dropped.",
+        image: "/images/blog/figma-mcp-claude/chrome-final-product.png",
+        alt: "Final implemented UI aligned with system specifications",
+        captionTitle: "Outcome",
+        captionBody: "Implementation parity improved because teams were finally using the same system conventions.",
+        imageUrl: "final-ui / post-migration / release",
+      },
+    ],
+    process: [
+      {
+        number: "01",
+        title: "Migration Audit and Risk Scoring",
+        body: "Mapped components, variables, and dependencies, then prioritized by breakage risk.",
+      },
+      {
+        number: "02",
+        title: "Target Architecture and Naming Governance",
+        body: "Defined shared variable collections, alias rules, and naming standards for design and engineering.",
+      },
+      {
+        number: "03",
+        title: "Pilot Rollout with Two Product Squads",
+        body: "Piloted with two squads first, measured friction and defects, then scaled.",
+      },
+      {
+        number: "04",
+        title: "Scaled Adoption and Deprecation",
+        body: "Rolled out in waves with deprecation notes and update checklists.",
+      },
+    ],
+    decisions: [
+      {
+        number: "01",
+        label: "Inventory First",
+        title: "No migration before dependency mapping",
+        body: [
+          "I paused conversion work until dependencies were mapped. That prevented hidden breakpoints from showing up late in rollout.",
+          "The inventory called out orphaned tokens, duplicate semantic names, detached components, and unowned library assets.",
+        ],
+        impact: "Better visibility up front reduced rollback risk and made effort estimates more realistic.",
+        image: "/images/blog/figma-mcp-claude/figma-copy-link.png",
+        imageCaption: "Audit phase: tracing components and tokens back to exact source frames.",
+      },
+      {
+        number: "02",
+        label: "Token Governance",
+        title: "Semantic aliases over raw value references",
+        body: [
+          "I moved teams away from raw value references and into semantic aliases.",
+          "Each semantic token had an owner and a plain-language usage description.",
+        ],
+        impact: "Token drift dropped and updates became safer because source changes no longer broke meaning.",
+        flip: true,
+      },
+      {
+        number: "03",
+        label: "Automation for QA",
+        title: "Use MCP for repetitive checks, not design decisions",
+        body: [
+          "I added an MCP-assisted review step to extract frame-level values and run quick parity checks for spacing, color, and typography.",
+          "Final sign-off stayed with design and engineering. The automation helped us catch outliers earlier.",
+        ],
+        impact: "QA cycles got faster and fewer mismatches escaped into handoff files.",
+      },
+    ],
+    constraints: [
+      { title: "Parallel Delivery", body: "Feature squads had active sprint commitments. Migration work could not block roadmap delivery." },
+      { title: "Cross-Team Variance", body: "Teams had different library habits, naming conventions, and tolerance for process change." },
+      { title: "Tooling Complexity", body: "Legacy styles, local variables, and detached instances required careful sequence planning." },
+      { title: "Governance Adoption", body: "Sustainable migration depended on behavior change, not just technical cleanup." },
+    ],
+    impact: [
+      { value: "82", suffix: "%", label: "Reduction in token mismatch defects" },
+      { value: "6", suffix: "d", label: "Average handoff cycle time after migration" },
+      { value: "7", label: "Product squads migrated to one system" },
+      { value: "0", label: "Critical regressions after final wave" },
+    ],
+    beforeAfter: [],
   },
 ];
 
