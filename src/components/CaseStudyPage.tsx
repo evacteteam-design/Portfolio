@@ -9,7 +9,7 @@ import type { CaseStudy, StudyTabId } from "@/content/caseStudies";
 export function CaseStudyPage({ study }: { study: CaseStudy }) {
   const [progress, setProgress] = useState(0);
   const [navMode, setNavMode] = useState<"hero" | "page">("hero");
-  const [activeTab, setActiveTab] = useState<StudyTabId>("problem");
+  const [activeTab, setActiveTab] = useState<StudyTabId>(() => study.tabs?.[0]?.id ?? "problem");
 
   useEffect(() => {
     const onScroll = () => {
@@ -30,7 +30,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
   const processSection = study.sections.find((s) => s.id === "process");
   const decisionsSection = study.sections.find((s) => s.id === "decisions");
   const constraintsSection = study.sections.find((s) => s.id === "constraints");
-  const tabOrder: StudyTabId[] = ["problem", "solution", "challenge", "summary"];
+  const tabOrder: StudyTabId[] = study.tabs?.map((tab) => tab.id) ?? ["problem", "solution", "challenge", "summary"];
   const activeTabData = study.tabs?.find((tab) => tab.id === activeTab);
   const navItems = ["context", "research", "decisions", "impact"];
   if (study.beforeAfter && study.beforeAfter.length > 0) {
@@ -144,32 +144,70 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
           <p className="hero-anim-4 text-base sm:text-lg font-light text-white/52 max-w-[620px] leading-[1.75] border-l-2 pl-4 sm:pl-5" style={{ borderColor: `${study.accentColor}80` }}>
             {study.lede}
           </p>
+
+          {study.slug === "design-system-migration" && (
+            <div className="hero-anim-5 mt-8 flex flex-wrap gap-3">
+              <Link
+                href="/work/design-system-migration/demo"
+                className="inline-flex items-center rounded-full px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
+                style={{ background: study.accentColor }}
+              >
+                Open SLDS demo
+              </Link>
+              <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-sm text-white/80">
+                Interactive case workspace · modal · tabs · data grid
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Screenshot shelf */}
         <div className="hero-anim-5 relative z-10 px-4 sm:px-6 md:px-14 max-w-[var(--max-w)] w-full mx-auto">
+          {study.slug === "design-system-migration" ? (
+            <div className="relative overflow-hidden rounded-[28px] sm:rounded-[34px] border border-white/14 shadow-[0_32px_80px_rgba(0,0,0,0.5),0_8px_32px_rgba(0,0,0,0.3)] mb-10 sm:mb-16">
+              <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
+                <Image
+                  src={study.heroScreenUrl}
+                  alt={study.title}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 1200px"
+                  priority
+                />
+                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,20,44,0.08)_0%,rgba(8,20,44,0.24)_46%,rgba(8,20,44,0.72)_100%)]" />
+                <div className="absolute inset-x-0 bottom-0 px-5 pb-5 sm:px-8 sm:pb-8 md:px-10 md:pb-10">
+                  <div className="inline-block rounded-lg border border-white/25 bg-[#3145F5]/78 px-4 py-2.5 sm:px-6 sm:py-3 backdrop-blur-sm">
+                    <p className="font-[family-name:var(--font-instrument-serif)] text-[clamp(1.3rem,4vw,4rem)] leading-[1.02] tracking-[-0.02em] text-white">
+                      Lightning Design System 2
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
             <div className="rounded-lg sm:rounded-xl overflow-hidden border border-white/12 shadow-[0_32px_80px_rgba(0,0,0,0.5),0_8px_32px_rgba(0,0,0,0.3)] mb-10 sm:mb-16">
-            <div className="bg-[rgba(12,18,40,0.97)] px-4 py-2.5 flex items-center gap-2.5 border-b border-white/6">
-              <div className="flex gap-1.5">
-                <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
-                <div className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
-                <div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
+              <div className="bg-[rgba(12,18,40,0.97)] px-4 py-2.5 flex items-center gap-2.5 border-b border-white/6">
+                <div className="flex gap-1.5">
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
+                  <div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
+                </div>
+                <div className="flex-1 bg-white/5 rounded px-3 py-1 text-[11px] font-[family-name:var(--font-dm-mono)] text-white/28">
+                  {study.heroScreenCaption}
+                </div>
               </div>
-              <div className="flex-1 bg-white/5 rounded px-3 py-1 text-[11px] font-[family-name:var(--font-dm-mono)] text-white/28">
-                {study.heroScreenCaption}
+              <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
+                <Image
+                  src={study.heroScreenUrl}
+                  alt={study.title}
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 1200px"
+                  priority
+                />
               </div>
             </div>
-            <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
-              <Image
-                src={study.heroScreenUrl}
-                alt={study.title}
-                fill
-                className="object-cover"
-                sizes="(max-width: 768px) 100vw, 1200px"
-                priority
-              />
-            </div>
-          </div>
+          )}
         </div>
       </section>
 
@@ -455,7 +493,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 pt-8 sm:pt-12">
               <div>
                 <p className="font-[family-name:var(--font-instrument-serif)] text-[40px] sm:text-[72px] leading-none text-[var(--accent-dark)]/5 mb-[-8px] sm:mb-[-12px] tracking-[-0.04em]">
-                  {activeTab === "problem" ? "01" : activeTab === "solution" ? "02" : activeTab === "challenge" ? "03" : "04"}
+                  {activeTab === "problem" || activeTab === "system-fluency" ? "01" : activeTab === "solution" || activeTab === "pattern-discipline" ? "02" : activeTab === "challenge" || activeTab === "governance" ? "03" : "04"}
                 </p>
                 <p className="font-[family-name:var(--font-instrument-serif)] text-[22px] sm:text-[28px] leading-snug tracking-[-0.02em] text-[var(--black)] mb-4">
                   {activeTabData?.title ?? (

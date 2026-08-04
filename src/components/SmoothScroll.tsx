@@ -39,9 +39,14 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
         hash = href.slice(1);
       }
 
-      if (!hash) return;
+      if (!hash || hash === "#") return;
 
-      const target = document.querySelector(hash);
+      let target: Element | null = null;
+      try {
+        target = document.querySelector(hash);
+      } catch {
+        return;
+      }
       if (!target) return;
 
       e.preventDefault();

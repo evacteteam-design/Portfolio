@@ -6,10 +6,10 @@ import type { CaseStudy } from "@/content/caseStudies";
 
 export function ProjectCard({ project, index }: { project: CaseStudy; index: number }) {
   return (
-    <Reveal delay={index + 1} direction="up">
+    <Reveal delay={index + 1} direction="up" className="h-full">
       <Link
         href={`/work/${project.slug}`}
-        className="group block relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--white)] transition-all duration-500 hover:shadow-2xl hover:shadow-[var(--accent-light)]/10 hover:-translate-y-1"
+        className="group relative h-full flex flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--white)] transition-all duration-500 hover:shadow-2xl hover:shadow-[var(--accent-light)]/10 hover:-translate-y-1"
       >
         {/* Preview image area */}
         <div
@@ -42,7 +42,7 @@ export function ProjectCard({ project, index }: { project: CaseStudy; index: num
         </div>
 
         {/* Card content */}
-        <div className="p-5 sm:p-8 md:p-10">
+        <div className="p-5 sm:p-8 md:p-10 flex-1 flex flex-col">
           {/* Tags */}
           <div className="flex flex-wrap gap-2 mb-5">
             <span className="text-[10px] font-semibold tracking-[0.1em] uppercase px-3 py-1 rounded-full border border-[var(--border)] text-[var(--ink3)]">
@@ -61,29 +61,31 @@ export function ProjectCard({ project, index }: { project: CaseStudy; index: num
             {project.lede}
           </p>
 
-          {/* Impact strip */}
-          <div className="flex gap-4 sm:gap-8 pt-4 sm:pt-5 border-t border-[var(--border)]">
-            {project.stats.slice(0, 3).map((stat, i) => (
-              <div key={i}>
-                <p className="font-[family-name:var(--font-instrument-serif)] text-xl sm:text-2xl text-[var(--black)]">
-                  {stat.value}
-                  {stat.suffix && (
-                    <span className="text-sm align-super">{stat.suffix}</span>
-                  )}
-                </p>
-                <p className="text-[11px] text-[var(--ink3)] mt-1 leading-snug max-w-[120px]">
-                  {stat.description.split("—")[0].trim()}
-                </p>
-              </div>
-            ))}
-          </div>
+          <div className="mt-auto">
+            {/* Impact strip */}
+            <div className="flex gap-4 sm:gap-8 pt-4 sm:pt-5 border-t border-[var(--border)]">
+              {project.stats.slice(0, 3).map((stat, i) => (
+                <div key={i}>
+                  <p className="font-[family-name:var(--font-instrument-serif)] text-xl sm:text-2xl text-[var(--black)]">
+                    {stat.value}
+                    {stat.suffix && (
+                      <span className="text-sm align-super">{stat.suffix}</span>
+                    )}
+                  </p>
+                  <p className="text-[11px] text-[var(--ink3)] mt-1 leading-snug max-w-[120px]">
+                    {stat.description.split("—")[0].trim()}
+                  </p>
+                </div>
+              ))}
+            </div>
 
-          {/* Arrow */}
-          <div className="mt-6 flex items-center gap-2 text-[12px] font-medium tracking-[0.06em] uppercase text-[var(--accent-light)] group-hover:gap-3 transition-all">
-            Read case study
-            <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="transition-transform duration-300 group-hover:translate-x-1">
-              <path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
+            {/* Arrow */}
+            <div className="mt-6 flex items-center gap-2 text-[12px] font-medium tracking-[0.06em] uppercase text-[var(--accent-light)] group-hover:gap-3 transition-all">
+              Read case study
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" className="transition-transform duration-300 group-hover:translate-x-1">
+                <path d="M1 7h12M8 2l5 5-5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              </svg>
+            </div>
           </div>
         </div>
       </Link>
