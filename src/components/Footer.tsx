@@ -1,6 +1,12 @@
+'use client';
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 export function Footer() {
+  const pathname = usePathname();
+  // Hide footer inside the standalone demo — it breaks immersion
+  if (pathname === '/work/design-system-migration/demo') return null;
+
   return (
     <footer className="border-t border-[var(--border)] py-8 sm:py-12 px-4 sm:px-6 md:px-14" style={{ background: 'linear-gradient(to bottom, var(--surface), var(--white))' }}>
       <div className="max-w-[var(--max-w)] mx-auto">

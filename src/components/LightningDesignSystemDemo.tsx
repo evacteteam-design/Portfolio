@@ -20,11 +20,17 @@ import {
   Radio,
   RadioGroup,
   Textarea,
+  Settings,
 } from '@salesforce/design-system-react';
 
 const SLDS_STYLESHEET_HREF = '/slds/salesforce-lightning-design-system.min.css';
 const SLDS_STYLESHEET_ID = 'slds-demo-stylesheet';
 const QUEUE_PAGE_SIZE = 5;
+
+// Must run before any Modal renders to register the aria-hidden target element
+if (typeof window !== 'undefined') {
+  Settings.setAppElement(document.body);
+}
 
 type QueueFilterId = 'all' | 'documents' | 'renewal' | 'callbacks' | 'compliance';
 
@@ -221,6 +227,10 @@ export function LightningDesignSystemDemo() {
         return { label, status: 'blocked' as const, statusLabel: 'Missing docs' };
       }
 
+      if (index === 3 && !allDocumentsReady) {
+        return { label, status: 'current' as const, statusLabel: 'Needs action' };
+      }
+
       if (firstIncompleteIndex === -1 || index === firstIncompleteIndex) {
         return { label, status: 'current' as const, statusLabel: 'In progress' };
       }
@@ -271,6 +281,18 @@ export function LightningDesignSystemDemo() {
 
     return { label: 'Case review in progress', tone: 'slds-theme_warning' };
   }, [activeTicket.status, allDocumentsReady, allCoreChecksConfirmed, canIssueTicket, canRunCompliance]);
+
+  // Badge tone based on actual ticket status (not workflow state) for status display in Case history
+  const ticketStatusBadge = useMemo(() => {
+    switch (activeTicket.status) {
+      case 'Approved': return 'slds-theme_success';
+      case 'Follow-up scheduled': return 'slds-theme_success';
+      case 'Awaiting signature': return 'slds-theme_info';
+      case 'Needs verification': return 'slds-theme_warning';
+      case 'Documents pending': return 'slds-theme_warning';
+      default: return '';
+    }
+  }, [activeTicket.status]);
 
   const logAction = (entry: string) => setActivityLog((prev) => [entry, ...prev].slice(0, 8));
 
@@ -411,7 +433,16 @@ export function LightningDesignSystemDemo() {
 
   return (
     <IconSettings iconPath="/icons">
+      <>
+      <a
+        href="#dmv-main-content"
+        className="slds-assistive-text slds-assistive-text_focus"
+        style={{ position: 'fixed', top: 8, left: 8, zIndex: 9999, background: '#0176d3', color: '#fff', padding: '8px 16px', borderRadius: '4px', textDecoration: 'none', fontWeight: 600 }}
+      >
+        Skip to main content
+      </a>
       <div
+        id="dmv-demo-topbar"
         className="dmv-demo-topbar fixed top-0 left-0 right-0 z-[100] h-14 sm:h-16 px-4 sm:px-6 md:px-14 flex items-center justify-between"
       >
         <Link href="/" className="slds-text-title_caps slds-text-link_reset">
@@ -426,8 +457,103 @@ export function LightningDesignSystemDemo() {
           background: var(--slds-g-color-neutral-base-100, #ffffff);
           color: var(--slds-g-color-neutral-base-10, #181818);
           font-family: 'Salesforce Sans', Arial, sans-serif;
+          font-size: 0.875rem;
+          line-height: 1.5;
           min-height: 100vh;
           padding-top: 72px;
+        }
+
+        /* Disabled buttons: slightly darker grey, still clearly disabled but readable */
+        .dmv-demo-root .slds-button:disabled,
+        .dmv-demo-root .slds-button[disabled] {
+          color: #a8a8a8 !important;
+          border-color: #d8d8d8 !important;
+        }
+        .dmv-demo-root .slds-text-color_weak {
+          color: #767676 !important;
+        }
+
+        /* Tighten card header→body gap: SLDS stacks body margin + content top padding */
+        .dmv-demo-root .slds-card__header {
+          padding-top: 0.5rem !important;
+          padding-bottom: 0 !important;
+        }
+
+        .dmv-demo-root .slds-card__body {
+          margin-top: 0 !important;
+          margin-bottom: 0 !important;
+        }
+
+        .dmv-demo-root .slds-card__body .slds-p-around_medium {
+          padding-top: 6px !important;
+          padding-bottom: 10px !important;
+        }
+        }
+
+        /* Force Salesforce Sans everywhere in the demo - prevent Poppins bleeding in */
+        .dmv-demo-root *,
+        .dmv-demo-root .slds-card,
+        .dmv-demo-root .slds-card *,
+        .dmv-demo-root .slds-form-element,
+        .dmv-demo-root .slds-form-element * {
+          font-family: 'Salesforce Sans', Arial, sans-serif !important;
+        }
+
+        /* Normalize base paragraph text inside cards */
+        .dmv-demo-root .slds-p-around_medium p,
+        .dmv-demo-root .foundation-tile p {
+          font-size: 0.875rem;
+          line-height: 1.5;
+          color: var(--slds-g-color-neutral-base-10, #181818);
+        }
+
+        /* Consistent weak/secondary text */
+        .dmv-demo-root .slds-text-color_weak {
+          color: var(--slds-g-color-neutral-base-50, #747474) !important;
+          font-size: 0.8125rem;
+        }
+
+        /* Caps labels — less aggressive, more readable */
+        .dmv-demo-root .slds-text-title_caps {
+          font-size: 0.6875rem !important;
+          letter-spacing: 0.06em !important;
+          font-weight: 600 !important;
+          color: var(--slds-g-color-neutral-base-50, #747474) !important;
+          text-transform: uppercase;
+          line-height: 1.4;
+        }
+
+        /* Tile primary values — consistent size, not overblown */
+        .dmv-demo-root .foundation-tile .slds-text-heading_small {
+          font-size: 1rem !important;
+          font-weight: 600 !important;
+          line-height: 1.3 !important;
+          color: var(--slds-g-color-neutral-base-10, #181818) !important;
+        }
+
+        /* Card headings — consistent with SLDS but grounded */
+        .dmv-demo-root .slds-card__header h2 {
+          font-size: 0.875rem !important;
+          font-weight: 700 !important;
+          letter-spacing: 0 !important;
+        }
+
+        /* Body small — consistent secondary text */
+        .dmv-demo-root .slds-text-body_small {
+          font-size: 0.8125rem !important;
+          line-height: 1.45 !important;
+        }
+
+        /* Checkbox and radio labels — match body text */
+        .dmv-demo-root .slds-form-element__label {
+          font-size: 0.875rem !important;
+          line-height: 1.5 !important;
+          color: var(--slds-g-color-neutral-base-10, #181818) !important;
+        }
+
+        /* Breadcrumb text */
+        .dmv-demo-root .slds-breadcrumb {
+          font-size: 0.8125rem;
         }
 
         .dmv-demo-shell {
@@ -448,6 +574,11 @@ export function LightningDesignSystemDemo() {
           grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
           gap: 16px;
           align-items: start;
+        }
+
+        .slds-page-header__name-title h1 > span:first-child {
+          display: block;
+          margin-bottom: 4px;
         }
 
         .dmv-demo-topbar {
@@ -645,8 +776,41 @@ export function LightningDesignSystemDemo() {
 
         .case-doc-list {
           display: grid;
-          gap: 8px;
+          gap: 0;
           margin-top: 8px;
+          border: 1px solid var(--slds-g-color-border-base-1, #d8dde6);
+          border-radius: 0.25rem;
+          overflow: hidden;
+        }
+
+        .case-doc-row {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 8px;
+          padding: 8px 12px;
+          border-bottom: 1px solid var(--slds-g-color-border-base-1, #d8dde6);
+        }
+
+        .case-doc-row:last-child {
+          border-bottom: 0;
+        }
+
+        .case-doc-missing {
+          background: var(--slds-g-color-warning-base-95, #fef1e9);
+        }
+
+        .case-doc-chip {
+          display: inline-flex;
+          align-items: center;
+          font-size: 0.75rem;
+          padding: 2px 8px;
+          border-radius: 100px;
+          background: var(--slds-g-color-neutral-base-95, #f3f3f3);
+          border: 1px solid var(--slds-g-color-border-base-1, #d8dde6);
+          color: var(--slds-g-color-neutral-base-30, #3e3e3c);
+          margin-right: 4px;
+          margin-top: 6px;
         }
 
         .supervisor-modal__content {
@@ -847,7 +1011,7 @@ export function LightningDesignSystemDemo() {
         }
       `}</style>
 
-      <div className="dmv-demo-root slds-theme_default">
+      <div id="dmv-main-content" className="dmv-demo-root slds-theme_default">
         <div className="dmv-demo-shell">
           <Breadcrumb
             trail={[
@@ -871,7 +1035,7 @@ export function LightningDesignSystemDemo() {
             )}
           />
 
-          <Card heading={`Now serving ${activeTicket.id}`} icon={<Icon category="standard" name="case" />} className="slds-m-top_medium">
+          <Card heading={`Now serving ${activeTicket.id}`} icon={<Icon category="standard" name="record" />} className="slds-m-top_medium">
             <div className="slds-p-around_medium slds-grid slds-wrap slds-gutters_x-small" style={{ alignItems: 'stretch' }}>
               <div className="slds-col slds-size_1-of-1 slds-medium-size_2-of-12" style={{ display: 'flex' }}>
                 <div className="foundation-tile">
@@ -913,17 +1077,17 @@ export function LightningDesignSystemDemo() {
             <div>
               <Card heading="Current transaction" icon={<Icon category="standard" name="service_appointment" />}>
                 <div className="slds-p-around_medium">
-                  <p className="slds-text-title_caps">Active case only</p>
-                  <p className="slds-text-heading_small slds-m-top_x-small">Ticket {activeTicket.id}</p>
-                  <p className="slds-m-top_x-small">{activeTicket.customer}</p>
-                  <p className="slds-m-top_x-small slds-text-color_weak">{activeTicket.service} at {activeTicket.counter}.</p>
-                  <p className="slds-m-top_medium slds-text-color_weak">Use Current queue to switch to another pending ticket when needed.</p>
+                  <p className="slds-text-title_caps">Next action</p>
+                  <p className="slds-text-heading_small slds-m-top_x-small">{activeTicket.nextAction}</p>
+                  <p className="slds-m-top_medium slds-text-title_caps">Due time</p>
+                  <p className="slds-m-top_x-small slds-text-color_weak">{activeTicket.due} · {activeTicket.reviewMins} min est.</p>
+                  <p className="slds-m-top_x-small slds-text-color_weak">Use Current queue to switch tickets.</p>
                 </div>
               </Card>
 
               <Card heading="Live activity" icon={<Icon category="standard" name="task" />} className="slds-m-top_medium">
                 <div className="slds-p-around_medium">
-                  <ul className="slds-has-divider_bottom-space">
+                  <ul className="slds-has-divider_bottom-space" aria-live="polite" aria-label="Recent activity" aria-atomic="false">
                     {activityLog.map((entry, index) => (
                       <li key={`${entry}-${index}`} className="slds-p-vertical_x-small slds-text-body_small">{entry}</li>
                     ))}
@@ -938,24 +1102,23 @@ export function LightningDesignSystemDemo() {
                   <div className="slds-grid slds-gutters_x-small slds-wrap" style={{ alignItems: 'stretch' }}>
                     <div className="slds-col slds-size_1-of-1 slds-medium-size_4-of-12" style={{ display: 'flex' }}>
                       <div className="foundation-tile">
-                        <p className="slds-text-title_caps">Applicant</p>
-                        <p className="slds-text-heading_small slds-m-top_x-small">{activeTicket.customer}</p>
-                        <p className="slds-text-body_small slds-text-color_weak">Service: {activeTicket.service}</p>
-                        <p className="slds-text-body_small slds-text-color_weak">Counter: {activeTicket.counter}</p>
+                        <p className="slds-text-title_caps">Visit type</p>
+                        <p className="slds-text-heading_small slds-m-top_x-small">{activeTicket.visitType}</p>
+                        <p className="slds-text-body_small slds-text-color_weak slds-m-top_x-small">{activeTicket.lastVisit}</p>
                       </div>
                     </div>
                     <div className="slds-col slds-size_1-of-1 slds-medium-size_4-of-12" style={{ display: 'flex' }}>
                       <div className="foundation-tile">
                         <p className="slds-text-title_caps">Document status</p>
                         <p className="slds-text-heading_small slds-m-top_x-small">{activeTicket.docsVerified}/{activeTicket.docsRequired} verified</p>
-                        <p className="slds-text-body_small slds-text-color_weak">{allDocumentsReady ? 'All required documents received' : `${missingDocuments.length} required document(s) missing`}</p>
+                        <p className="slds-text-body_small slds-text-color_weak">{allDocumentsReady ? 'All required documents received' : missingDocuments.length === 1 ? '1 required document missing' : `${missingDocuments.length} required documents missing`}</p>
                       </div>
                     </div>
                     <div className="slds-col slds-size_1-of-1 slds-medium-size_4-of-12" style={{ display: 'flex' }}>
                       <div className="foundation-tile">
-                        <p className="slds-text-title_caps">Decision state</p>
+                        <p className="slds-text-title_caps">Workflow state</p>
                         <p className="slds-text-heading_small slds-m-top_x-small">{workflowBadge.label}</p>
-                        <p className="slds-text-body_small slds-text-color_weak">Status: {activeTicket.status}</p>
+                        <p className="slds-text-body_small slds-text-color_weak slds-m-top_x-small">Ticket status: {activeTicket.status}</p>
                       </div>
                     </div>
                   </div>
@@ -969,15 +1132,11 @@ export function LightningDesignSystemDemo() {
                       <div className="foundation-tile">
                         <p className="slds-text-title_caps">Current case objective</p>
                         <p className="slds-text-heading_small slds-m-top_x-small">{activeTicket.nextAction}</p>
-                        <p className="slds-m-top_x-small">{activeTicket.customer} is processing {activeTicket.service.toLowerCase()} at {activeTicket.counter}.</p>
                       </div>
 
                       <div className="foundation-tile slds-m-top_medium">
                         <div className="slds-grid slds-grid_align-spread slds-grid_vertical-align-center dmv-step-header">
                           <p className="slds-text-title_caps">Step by step</p>
-                          <span className="slds-badge">
-                            {workflowBadge.label}
-                          </span>
                         </div>
                         <ol className="workflow-steps-list">
                           {workflowStepStates.map((step) => (
@@ -1008,63 +1167,69 @@ export function LightningDesignSystemDemo() {
                       </div>
 
                       <div className="foundation-tile slds-m-top_medium">
-                        <p className="slds-text-title_caps">Mandatory confirmations</p>
+                        <p className="slds-text-title_caps">Confirmations</p>
                         <div className="slds-m-top_x-small">
-                          <Checkbox labels={{ label: 'Identity details matched with record' }} checked={identityConfirmed} onChange={(_event: unknown, data: { checked: boolean }) => setIdentityConfirmed(data.checked)} />
+                          <Checkbox labels={{ label: 'Identity details matched with record' }} checked={identityConfirmed} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setIdentityConfirmed(event.target?.checked ?? false)} />
                         </div>
                         <div className="slds-m-top_x-small">
-                          <Checkbox labels={{ label: 'Address verification completed' }} checked={addressConfirmed} onChange={(_event: unknown, data: { checked: boolean }) => setAddressConfirmed(data.checked)} />
+                          <Checkbox labels={{ label: 'Address verification completed' }} checked={addressConfirmed} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setAddressConfirmed(event.target?.checked ?? false)} />
                         </div>
                         <div className="slds-m-top_x-small">
-                          <Checkbox labels={{ label: `${nextRequiredDocument ?? 'Final document'} reviewed and accepted` }} checked={photoConfirmed} onChange={(_event: unknown, data: { checked: boolean }) => setPhotoConfirmed(data.checked)} />
+                          <Checkbox labels={{ label: 'Required document reviewed and accepted' }} checked={photoConfirmed} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setPhotoConfirmed(event.target?.checked ?? false)} />
                         </div>
                         <p className="slds-m-top_medium slds-text-color_weak">
                           {allCoreChecksConfirmed ? (allDocumentsReady ? 'All confirmations complete.' : `Confirmations complete. Required document still pending: ${nextRequiredDocument}.`) : 'Complete all confirmations before compliance and issuance.'}
                         </p>
                       </div>
 
-                      <div className="slds-m-top_medium">
-                        {processProgress.map((step) => (
-                          <div key={step.name} className="slds-m-bottom_medium">
-                            <div className="slds-grid slds-grid_align-spread">
-                              <span className="slds-text-body_small slds-text-color_weak">{step.name}</span>
-                              <span className="slds-text-body_small">{step.value}%</span>
+                      <div className="foundation-tile slds-m-top_medium">
+                        <p className="slds-text-title_caps">Case progress</p>
+                        <div className="slds-m-top_small">
+                          {processProgress.filter((_, i) => i > 0).map((step) => (
+                            <div key={step.name} className="slds-m-bottom_medium">
+                              <div className="slds-grid slds-grid_align-spread">
+                                <span className="slds-text-body_small slds-text-color_weak">{step.name}</span>
+                                <span className="slds-text-body_small">{step.value}%</span>
+                              </div>
+                              <ProgressBar value={step.value} className="slds-m-top_x-small" />
                             </div>
-                            <ProgressBar value={step.value} className="slds-m-top_x-small" />
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
 
                       <div className="slds-m-top_medium">
                         <p className="slds-text-title_caps">Primary actions</p>
-                        <p className="slds-text-body_small slds-text-color_weak slds-m-top_x-small">
-                          Use these for the normal happy path. Exceptions are handled in the panel on the right.
-                        </p>
-                        <div className="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-wrap slds-m-top_medium dmv-primary-actions" style={{ gap: '0.5rem' }}>
-                          <div className="dmv-primary-action-slot">
-                            {canVerifyDocuments ? <Button label={nextRequiredDocument ? `Verify ${nextRequiredDocument}` : 'Verify next required document'} variant="neutral" onClick={handleVerifyDocuments} /> : null}
-                          </div>
-                          <div className="dmv-primary-action-slot">
+                        <div className="slds-grid slds-grid_vertical-align-center slds-m-top_medium" style={{ gap: '0.5rem' }}>
+                          {canVerifyDocuments && nextRequiredDocument ? (
+                            <div>
+                              <Button label={`Verify ${nextRequiredDocument}`} variant="neutral" onClick={handleVerifyDocuments} />
+                            </div>
+                          ) : null}
+                          <div>
                             {canIssueTicket ? (
                               <Button label="Issue and close ticket" variant="brand" onClick={handleCloseTicket} />
                             ) : canRunCompliance ? (
-                              <Button label="Everything checks out" variant="brand" onClick={handleEverythingChecksOut} />
+                              <Button label="Run compliance check" variant="brand" onClick={handleEverythingChecksOut} />
                             ) : (
-                              <Button label="Everything checks out" variant="neutral" disabled onClick={handleEverythingChecksOut} />
+                              <Button label="Run compliance check" variant="neutral" disabled
+                                aria-describedby="compliance-hint"
+                                onClick={handleEverythingChecksOut}
+                              />
                             )}
                           </div>
                         </div>
                       </div>
+                      <p id="compliance-hint" className="slds-assistive-text">Complete all confirmations and verify all documents before running the compliance check.</p>
                     </div>
                   </Card>
                 </div>
 
                 <div>
-                  <Card heading="Case history and verification" icon={<Icon category="standard" name="user" />}>
+                  <Card heading="Case details" icon={<Icon category="standard" name="user" />}>
                     <div className="slds-p-around_medium">
                       <div className="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-wrap" style={{ gap: '0.5rem' }}>
                         <p className="slds-text-heading_small">Ticket {activeTicket.id}</p>
-                        <span className={`slds-badge ${workflowBadge.tone}`}>{activeTicket.status}</span>
+                        <span className={`slds-badge ${ticketStatusBadge || 'slds-theme_info'}`}>{activeTicket.status}</span>
                       </div>
                       <p className="slds-m-top_x-small slds-text-body_small slds-text-color_weak">
                         {activeTicket.service} · {activeTicket.visitType}
@@ -1093,64 +1258,78 @@ export function LightningDesignSystemDemo() {
                         </div>
                         <div className="case-meta-row" role="listitem">
                           <p className="case-meta-label">Priority</p>
-                          <p className="case-meta-value">{activeTicket.priority}</p>
+                          <p className="case-meta-value">
+                            <span className={`slds-badge ${statusBadgeTone}`}>{activeTicket.priority}</span>
+                          </p>
                         </div>
                       </div>
 
                       {activeTicket.exceptionState ? <p className="slds-m-top_small slds-text-color_error"><strong>Exception state:</strong> {activeTicket.exceptionState}</p> : null}
 
                       <div className="case-section">
-                        <div className="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-wrap" style={{ gap: '0.5rem' }}>
-                          <p className="slds-text-title_caps">Previously submitted</p>
-                          <span className={`slds-badge ${statusBadgeTone}`}>{activeTicket.priority} priority</span>
-                        </div>
+                        <p className="slds-text-title_caps">Previously submitted</p>
                         {activeTicket.priorSubmissions.length > 0 ? (
-                          activeTicket.priorSubmissions.map((submission) => (
-                            <p key={submission} className="slds-m-top_x-small slds-text-body_small">{submission}</p>
-                          ))
+                          <div className="slds-m-top_x-small">
+                            {activeTicket.priorSubmissions.map((submission) => (
+                              <span key={submission} className="case-doc-chip">{submission}</span>
+                            ))}
+                          </div>
                         ) : (
-                          <p className="slds-m-top_x-small slds-text-body_small slds-text-color_weak">No prior document submissions on file.</p>
+                          <p className="slds-m-top_x-small slds-text-body_small slds-text-color_weak">No prior submissions on file.</p>
                         )}
                       </div>
 
                       <div className="case-section">
-                        <p className="slds-text-title_caps">Documents to verify now</p>
+                        <p className="slds-text-title_caps">Document status</p>
+                        <p className="slds-text-body_small slds-text-color_weak slds-m-top_x-small">Required for this case</p>
                         <div className="case-doc-list">
-                          {requiredDocuments.map((doc, index) => (
-                            <div key={doc}>
-                              <Checkbox labels={{ label: doc }} checked={index < activeTicket.docsVerified} />
-                            </div>
-                          ))}
+                          {requiredDocuments.map((doc, index) => {
+                            const isVerified = index < activeTicket.docsVerified;
+                            return (
+                              <div key={doc} className={`case-doc-row${!isVerified ? ' case-doc-missing' : ''}`}>
+                                <span className="slds-text-body_small">{doc}</span>
+                                <span className={`slds-badge ${isVerified ? 'slds-theme_success' : 'slds-theme_warning'}`} style={{ flexShrink: 0, fontSize: '0.625rem', whiteSpace: 'nowrap' }}>
+                                  {isVerified ? 'Verified' : 'Missing'}
+                                </span>
+                              </div>
+                            );
+                          })}
                         </div>
-                        {!allDocumentsReady ? <p className="slds-m-top_medium slds-text-color_error"><strong>Missing:</strong> {missingDocuments.join(', ')}</p> : null}
-                        <p className="slds-m-top_medium slds-text-color_weak">Last updated {activeTicket.lastUpdated}</p>
                       </div>
                     </div>
                   </Card>
 
                   <Card heading="Exceptions and flagging" icon={<Icon category="standard" name="choice" />} className="slds-m-top_medium">
                     <div className="slds-p-around_medium">
-                      <p className="slds-text-body_small slds-text-color_weak">Use this only when the case cannot follow the normal path.</p>
+                      <p className="slds-text-body_small slds-text-color_weak">Use only when the case cannot follow the normal path. Supervisor review covers policy exceptions, identity mismatch, or legal discrepancies the agent cannot resolve.</p>
                       <RadioGroup
                         label="Decision"
                         name="decision"
                         value={caseDecision}
-                        onChange={(_event: unknown, data: { value: string }) => setCaseDecision(data.value)}
+                        onChange={(event: React.ChangeEvent<HTMLInputElement>) => setCaseDecision(event.target?.value ?? '')}
                       >
                         <Radio labels={{ label: 'Reschedule for missing documents' }} value="reschedule" />
                         <Radio labels={{ label: 'Send to supervisor review' }} value="escalate" />
                         <Radio labels={{ label: 'Hold / no interaction possible (flag)' }} value="hold" />
                       </RadioGroup>
-                      <p className="slds-text-body_small slds-text-color_weak slds-m-top_x-small">
-                        Supervisor review is for policy exceptions, identity mismatch, legal discrepancies, or cases the counter agent cannot resolve alone.
-                      </p>
                       <Textarea
-                        label="Decision note"
+                        label="Note"
                         value={caseDecisionNote}
-                        onChange={(_event: unknown, data: { value: string }) => setCaseDecisionNote(data.value)}
+                        onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => setCaseDecisionNote(event.target?.value ?? '')}
                         placeholder="Reason, missing context, or follow-up instruction"
                       />
-                      <Button label="Confirm exception" variant="neutral" className="slds-m-top_medium" onClick={handleConfirmDecision} />
+                      <Button
+                        label={
+                          caseDecision === 'reschedule' ? 'Reschedule case' :
+                          caseDecision === 'escalate' ? 'Escalate to supervisor' :
+                          caseDecision === 'hold' ? 'Flag and hold' :
+                          'Select a decision above'
+                        }
+                        variant="neutral"
+                        className="slds-m-top_medium"
+                        disabled={!caseDecision}
+                        onClick={handleConfirmDecision}
+                      />
                     </div>
                   </Card>
                 </div>
@@ -1161,7 +1340,7 @@ export function LightningDesignSystemDemo() {
 
         <Modal
           isOpen={isQueueModalOpen}
-          ariaHideApp={false}
+          ariaHideApp={true}
           heading="Current queue"
           containerClassName="queue-modal__container"
           contentClassName="queue-modal__content"
@@ -1187,7 +1366,6 @@ export function LightningDesignSystemDemo() {
                 items={pagedPendingTickets}
                 id="current-queue-table"
                 keyField="id"
-                fixedHeader
               >
                 <DataTableColumn key="id" label="Ticket" property="id" />
                 <DataTableColumn key="customer" label="Customer" property="customer" />
@@ -1205,7 +1383,7 @@ export function LightningDesignSystemDemo() {
 
         <Modal
           isOpen={isRescheduleModalOpen}
-          ariaHideApp={false}
+          ariaHideApp={true}
           heading={`Reschedule case · ${activeTicket.id}`}
           footer={
             <div className="slds-button-group" role="group">
@@ -1215,18 +1393,18 @@ export function LightningDesignSystemDemo() {
           }
           onRequestClose={() => setIsRescheduleModalOpen(false)}
         >
-          <div className="slds-form_stacked">
+          <div className="slds-p-around_medium slds-form_stacked">
             <p className="slds-m-bottom_medium">This case cannot be completed until missing mandatory documents are provided.</p>
             <Input
               label="Return appointment"
               value={rescheduleDate}
-              onChange={(_event: unknown, data: { value: string }) => setRescheduleDate(data.value)}
+              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setRescheduleDate(event.target?.value ?? '')}
               placeholder="Example: 2026-08-08 10:30 AM"
             />
             <Textarea
               label="Instructions for customer"
               value={rescheduleNote}
-              onChange={(_event: unknown, data: { value: string }) => setRescheduleNote(data.value)}
+              onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => setRescheduleNote(event.target?.value ?? '')}
             />
             <p className="slds-m-top_medium"><strong>Missing documents:</strong> {missingDocuments.join(', ') || 'None'}</p>
           </div>
@@ -1234,7 +1412,7 @@ export function LightningDesignSystemDemo() {
 
         <Modal
           isOpen={isModalOpen}
-          ariaHideApp={false}
+          ariaHideApp={true}
           heading={`Supervisor review · ${activeTicket.id}`}
           contentClassName="supervisor-modal__content"
           footer={
@@ -1252,7 +1430,7 @@ export function LightningDesignSystemDemo() {
               <div className="slds-form_stacked">
                 <Input label="Customer" defaultValue={activeTicket.customer} />
                 <Textarea label="Supervisor note" defaultValue={`Reviewing ${activeTicket.id} (${activeTicket.service}) currently marked ${activeTicket.status}.`} />
-                <RadioGroup label="Priority" name="priority" value={selectedPriority} onChange={(_event: unknown, data: { value: string }) => setSelectedPriority(data.value)}>
+                <RadioGroup label="Priority" name="priority" value={selectedPriority} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSelectedPriority(event.target?.value ?? '')}>
                   <Radio labels={{ label: 'High' }} value="High" />
                   <Radio labels={{ label: 'Medium' }} value="Medium" />
                   <Radio labels={{ label: 'Low' }} value="Low" />
@@ -1265,6 +1443,7 @@ export function LightningDesignSystemDemo() {
           </div>
         </Modal>
       </div>
+      </>
     </IconSettings>
   );
 }
