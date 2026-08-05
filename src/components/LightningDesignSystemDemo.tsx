@@ -500,8 +500,8 @@ export function LightningDesignSystemDemo() {
         }
 
         /* Normalize base paragraph text inside cards */
-        .dmv-demo-root .slds-p-around_medium p,
-        .dmv-demo-root .foundation-tile p {
+        .dmv-demo-root .slds-p-around_medium p:not(.slds-text-color_error):not(.slds-text-color_weak),
+        .dmv-demo-root .foundation-tile p:not(.slds-text-color_error):not(.slds-text-color_weak) {
           font-size: 0.875rem;
           line-height: 1.5;
           color: var(--slds-g-color-neutral-base-10, #181818);
@@ -714,8 +714,12 @@ export function LightningDesignSystemDemo() {
 
         .workflow-missing-note {
           margin-top: 12px;
-          padding-top: 12px;
-          border-top: 1px solid var(--slds-g-color-border-base-1, #d8dde6);
+          padding: 8px 12px;
+          background: var(--slds-g-color-error-base-95, #fff1f1);
+          border: 1px solid var(--slds-g-color-error-base-40, #ba0517);
+          border-radius: 0.25rem;
+          color: var(--slds-g-color-error-base-40, #ba0517) !important;
+          font-weight: 500;
         }
 
         .dmv-step-header {
