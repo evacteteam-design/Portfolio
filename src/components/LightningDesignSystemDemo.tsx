@@ -77,6 +77,29 @@ const workflowSteps = [
   'If a document is missing, reschedule with clear instructions.',
 ];
 
+type QueueActionCellProps = {
+  item?: TicketRow;
+  activeTicketId: string;
+  onOpenTicket: (ticket: TicketRow) => void;
+};
+
+function QueueActionCell(props: QueueActionCellProps) {
+  const ticket = props.item;
+  if (!ticket) {
+    return <DataTableCell {...props} />;
+  }
+
+  return (
+    <DataTableCell {...props}>
+      {ticket.id === props.activeTicketId ? (
+        <span className="slds-badge slds-theme_success">Current ticket</span>
+      ) : (
+        <Button label="Open ticket" variant="neutral" onClick={() => props.onOpenTicket(ticket)} />
+      )}
+    </DataTableCell>
+  );
+}
+
 export function LightningDesignSystemDemo() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isQueueModalOpen, setIsQueueModalOpen] = useState(false);
@@ -132,11 +155,12 @@ export function LightningDesignSystemDemo() {
   );
 
   const queuePageCount = Math.max(1, Math.ceil(pendingTickets.length / QUEUE_PAGE_SIZE));
+  const clampedQueuePage = Math.min(queuePage, queuePageCount);
 
   const pagedPendingTickets = useMemo(() => {
-    const startIndex = (queuePage - 1) * QUEUE_PAGE_SIZE;
+    const startIndex = (clampedQueuePage - 1) * QUEUE_PAGE_SIZE;
     return pendingTickets.slice(startIndex, startIndex + QUEUE_PAGE_SIZE);
-  }, [pendingTickets, queuePage]);
+  }, [pendingTickets, clampedQueuePage]);
 
   const activeTicket = useMemo(
     () => tickets.find((ticket) => ticket.id === selectedTicketId) ?? tickets[0],
@@ -158,34 +182,6 @@ export function LightningDesignSystemDemo() {
     allCoreChecksConfirmed &&
     ['Ready for review', 'Needs verification', 'Documents pending'].includes(activeTicket.status);
   const canIssueTicket = allDocumentsReady && activeTicket.status === 'Awaiting signature';
-
-  useEffect(() => {
-    setSelectedPriority(activeTicket.priority);
-  }, [activeTicket.priority]);
-
-  useEffect(() => {
-    if (!isQueueModalOpen) return;
-    const activeIndex = pendingTickets.findIndex((ticket) => ticket.id === activeTicket.id);
-    if (activeIndex >= 0) {
-      setQueuePage(Math.floor(activeIndex / QUEUE_PAGE_SIZE) + 1);
-      return;
-    }
-    setQueuePage(1);
-  }, [isQueueModalOpen, pendingTickets, activeTicket.id]);
-
-  useEffect(() => {
-    if (queuePage > queuePageCount) {
-      setQueuePage(queuePageCount);
-    }
-  }, [queuePage, queuePageCount]);
-
-  useEffect(() => {
-    setCaseDecision('');
-    setCaseDecisionNote('');
-    setIdentityConfirmed(false);
-    setAddressConfirmed(false);
-    setPhotoConfirmed(false);
-  }, [activeTicket.id]);
 
   const processProgress = useMemo(() => {
     const docsStep = activeTicket.docsVerified >= activeTicket.docsRequired ? 100 : Math.round((activeTicket.docsVerified / activeTicket.docsRequired) * 100);
@@ -303,8 +299,21 @@ export function LightningDesignSystemDemo() {
 
   const handleOpenQueueTicket = (ticket: TicketRow) => {
     setSelectedTicketId(ticket.id);
+    setSelectedPriority(ticket.priority);
+    setCaseDecision('');
+    setCaseDecisionNote('');
+    setIdentityConfirmed(false);
+    setAddressConfirmed(false);
+    setPhotoConfirmed(false);
     logAction(`Switched to ${ticket.id} at ${ticket.counter} (${ticket.customer})`);
     setIsQueueModalOpen(false);
+  };
+
+  const handleOpenQueueModal = () => {
+    const activeIndex = pendingTickets.findIndex((ticket) => ticket.id === activeTicket.id);
+    const initialPage = activeIndex >= 0 ? Math.floor(activeIndex / QUEUE_PAGE_SIZE) + 1 : 1;
+    setQueuePage(initialPage);
+    setIsQueueModalOpen(true);
   };
 
   const handleVerifyDocuments = () => {
@@ -413,24 +422,6 @@ export function LightningDesignSystemDemo() {
     }
   };
 
-  const QueueActionCell = (props: { item?: TicketRow }) => {
-    const ticket = props.item;
-    if (!ticket) {
-      return <DataTableCell {...props} />;
-    }
-
-    return (
-      <DataTableCell {...props}>
-        {ticket.id === activeTicket.id ? (
-          <span className="slds-badge slds-theme_success">Current ticket</span>
-        ) : (
-          <Button label="Open ticket" variant="neutral" onClick={() => handleOpenQueueTicket(ticket)} />
-        )}
-      </DataTableCell>
-    );
-  };
-  QueueActionCell.displayName = DataTableCell.displayName;
-
   return (
     <IconSettings iconPath="/icons">
       <>
@@ -443,6 +434,8 @@ export function LightningDesignSystemDemo() {
       </a>
       <div
         id="dmv-demo-topbar"
+        role="navigation"
+        aria-label="Portfolio navigation"
         className="dmv-demo-topbar fixed top-0 left-0 right-0 z-[100] h-14 sm:h-16 px-4 sm:px-6 md:px-14 flex items-center justify-between"
       >
         <Link href="/" className="slds-text-title_caps slds-text-link_reset">
@@ -463,6 +456,16 @@ export function LightningDesignSystemDemo() {
           padding-top: 72px;
         }
 
+        .dmv-demo-root a:focus-visible,
+        .dmv-demo-root button:focus-visible,
+        .dmv-demo-root input:focus-visible,
+        .dmv-demo-root textarea:focus-visible,
+        .dmv-demo-root [role="button"]:focus-visible {
+          outline: 3px solid #0b5cab !important;
+          outline-offset: 2px;
+          box-shadow: 0 0 0 2px #ffffff, 0 0 0 5px #0b5cab !important;
+        }
+
         /* Disabled buttons: slightly darker grey, still clearly disabled but readable */
         .dmv-demo-root .slds-button:disabled,
         .dmv-demo-root .slds-button[disabled] {
@@ -470,7 +473,7 @@ export function LightningDesignSystemDemo() {
           border-color: #d8d8d8 !important;
         }
         .dmv-demo-root .slds-text-color_weak {
-          color: #767676 !important;
+          color: #5c5c5c !important;
         }
 
         /* Tighten card header→body gap: SLDS stacks body margin + content top padding */
@@ -487,7 +490,6 @@ export function LightningDesignSystemDemo() {
         .dmv-demo-root .slds-card__body .slds-p-around_medium {
           padding-top: 6px !important;
           padding-bottom: 10px !important;
-        }
         }
 
         /* Force Salesforce Sans everywhere in the demo - prevent Poppins bleeding in */
@@ -509,7 +511,7 @@ export function LightningDesignSystemDemo() {
 
         /* Consistent weak/secondary text */
         .dmv-demo-root .slds-text-color_weak {
-          color: var(--slds-g-color-neutral-base-50, #747474) !important;
+          color: #5c5c5c !important;
           font-size: 0.8125rem;
         }
 
@@ -518,7 +520,7 @@ export function LightningDesignSystemDemo() {
           font-size: 0.6875rem !important;
           letter-spacing: 0.06em !important;
           font-weight: 600 !important;
-          color: var(--slds-g-color-neutral-base-50, #747474) !important;
+          color: #5c5c5c !important;
           text-transform: uppercase;
           line-height: 1.4;
         }
@@ -662,8 +664,30 @@ export function LightningDesignSystemDemo() {
           flex-shrink: 0;
           margin-top: 1px;
           font-size: 0.6875rem;
+          font-weight: 700;
           letter-spacing: 0.04em;
           text-transform: uppercase;
+          border: 1px solid var(--slds-g-color-border-base-1, #d8dde6);
+          background: #f3f3f3;
+          color: #181818;
+        }
+
+        .workflow-step-indicator.slds-theme_info {
+          background: #dff1ff;
+          color: #032d60;
+          border-color: #0176d3;
+        }
+
+        .workflow-step-indicator.slds-theme_warning {
+          background: #fef1e9;
+          color: #5f3900;
+          border-color: #a96404;
+        }
+
+        .workflow-step-indicator.slds-theme_success {
+          background: #e8f6ec;
+          color: #194e31;
+          border-color: #2e844a;
         }
 
         .workflow-steps-list li::before {
@@ -757,7 +781,7 @@ export function LightningDesignSystemDemo() {
 
         .case-meta-label {
           margin: 0;
-          color: var(--slds-g-color-neutral-base-50, #747474);
+          color: #5c5c5c;
           font-size: 0.6875rem;
           letter-spacing: 0.08em;
           text-transform: uppercase;
@@ -1015,12 +1039,12 @@ export function LightningDesignSystemDemo() {
         }
       `}</style>
 
-      <div id="dmv-main-content" className="dmv-demo-root slds-theme_default">
+      <div id="dmv-main-content" className="dmv-demo-root slds-theme_default" role="main" tabIndex={-1}>
         <div className="dmv-demo-shell">
           <Breadcrumb
             trail={[
-              <a key="home" href="/">Home</a>,
-              <a key="ops" href="/work/design-system-migration/demo">DMV Operations</a>,
+              <Link key="home" href="/">Home</Link>,
+              <Link key="ops" href="/work/design-system-migration/demo">DMV Operations</Link>,
               <span key="portal" style={{ paddingLeft: '0.5rem' }}>Employee Portal</span>,
             ]}
           />
@@ -1032,7 +1056,7 @@ export function LightningDesignSystemDemo() {
             onRenderActions={() => (
               <PageHeaderControl>
                 <div className="slds-grid slds-grid_vertical-align-center dmv-header-actions" style={{ gap: '0.5rem' }}>
-                  <Button label="Current queue" variant="neutral" onClick={() => setIsQueueModalOpen(true)} />
+                  <Button label="Current queue" variant="neutral" onClick={handleOpenQueueModal} />
                   <Button label="Supervisor notes" variant="brand" onClick={() => setIsModalOpen(true)} />
                 </div>
               </PageHeaderControl>
@@ -1167,7 +1191,7 @@ export function LightningDesignSystemDemo() {
                             </li>
                           ))}
                         </ol>
-                        {!allDocumentsReady ? <p className="workflow-missing-note slds-text-color_error"><strong>Missing documents:</strong> {missingDocuments.join(', ')}</p> : null}
+                        {!allDocumentsReady ? <p className="workflow-missing-note slds-text-color_error" aria-live="polite"><strong>Missing documents:</strong> {missingDocuments.join(', ')}</p> : null}
                       </div>
 
                       <div className="foundation-tile slds-m-top_medium">
@@ -1307,7 +1331,7 @@ export function LightningDesignSystemDemo() {
                     <div className="slds-p-around_medium">
                       <p className="slds-text-body_small slds-text-color_weak">Use only when the case cannot follow the normal path. Supervisor review covers policy exceptions, identity mismatch, or legal discrepancies the agent cannot resolve.</p>
                       <RadioGroup
-                        label="Decision"
+                        labels={{ label: 'Decision' }}
                         name="decision"
                         value={caseDecision}
                         onChange={(event: React.ChangeEvent<HTMLInputElement>) => setCaseDecision(event.target?.value ?? '')}
@@ -1352,11 +1376,11 @@ export function LightningDesignSystemDemo() {
           footer={
             <div className="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-wrap" role="group">
               <div className="slds-button-group" role="group" aria-label="Queue pagination">
-                <Button label="Previous" variant="neutral" disabled={queuePage === 1} onClick={() => setQueuePage((page) => Math.max(1, page - 1))} />
-                <Button label="Next" variant="neutral" disabled={queuePage === queuePageCount} onClick={() => setQueuePage((page) => Math.min(queuePageCount, page + 1))} />
+                <Button label="Previous" variant="neutral" disabled={clampedQueuePage === 1} onClick={() => setQueuePage((page) => Math.max(1, page - 1))} />
+                <Button label="Next" variant="neutral" disabled={clampedQueuePage === queuePageCount} onClick={() => setQueuePage((page) => Math.min(queuePageCount, page + 1))} />
               </div>
               <p className="slds-text-body_small slds-text-color_weak">
-                Page {queuePage} of {queuePageCount} · Showing {pagedPendingTickets.length} of {pendingTickets.length} pending tickets
+                Page {clampedQueuePage} of {queuePageCount} · Showing {pagedPendingTickets.length} of {pendingTickets.length} pending tickets
               </p>
               <Button label="Close" variant="neutral" onClick={() => setIsQueueModalOpen(false)} />
             </div>
@@ -1366,6 +1390,7 @@ export function LightningDesignSystemDemo() {
           <div className="slds-p-around_medium">
             <p className="slds-text-body_small slds-text-color_weak slds-m-bottom_medium">Select the pending ticket you want to work on now.</p>
             <div className="queue-modal__table-shell">
+              <div role="region" aria-label="Pending queue tickets">
               <DataTable
                 items={pagedPendingTickets}
                 id="current-queue-table"
@@ -1378,9 +1403,10 @@ export function LightningDesignSystemDemo() {
                 <DataTableColumn key="status" label="Status" property="status" />
                 <DataTableColumn key="due" label="Due" property="due" />
                 <DataTableColumn key="action" label="Action" property="action">
-                  <QueueActionCell />
+                  <QueueActionCell activeTicketId={activeTicket.id} onOpenTicket={handleOpenQueueTicket} />
                 </DataTableColumn>
               </DataTable>
+              </div>
             </div>
           </div>
         </Modal>
@@ -1434,7 +1460,7 @@ export function LightningDesignSystemDemo() {
               <div className="slds-form_stacked">
                 <Input label="Customer" defaultValue={activeTicket.customer} />
                 <Textarea label="Supervisor note" defaultValue={`Reviewing ${activeTicket.id} (${activeTicket.service}) currently marked ${activeTicket.status}.`} />
-                <RadioGroup label="Priority" name="priority" value={selectedPriority} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSelectedPriority(event.target?.value ?? '')}>
+                <RadioGroup labels={{ label: 'Priority' }} name="priority" value={selectedPriority} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSelectedPriority(event.target?.value ?? '')}>
                   <Radio labels={{ label: 'High' }} value="High" />
                   <Radio labels={{ label: 'Medium' }} value="Medium" />
                   <Radio labels={{ label: 'Low' }} value="Low" />
