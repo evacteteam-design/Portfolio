@@ -94,11 +94,13 @@ function QueueActionCell(props: QueueActionCellProps) {
       {ticket.id === props.activeTicketId ? (
         <span className="slds-badge slds-theme_success">Current ticket</span>
       ) : (
-        <Button label="Open ticket" variant="neutral" onClick={() => props.onOpenTicket(ticket)} />
+        <Button label={`Open ticket ${ticket.id}`} variant="neutral" onClick={() => props.onOpenTicket(ticket)} />
       )}
     </DataTableCell>
   );
 }
+// Required by SLDS DataTable to recognise this as a custom cell renderer
+QueueActionCell.displayName = DataTableCell.displayName;
 
 export function LightningDesignSystemDemo() {
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -450,8 +452,8 @@ export function LightningDesignSystemDemo() {
           background: var(--slds-g-color-neutral-base-100, #ffffff);
           color: var(--slds-g-color-neutral-base-10, #181818);
           font-family: 'Salesforce Sans', Arial, sans-serif;
-          font-size: 0.875rem;
-          line-height: 1.5;
+          font-size: 1rem;
+          line-height: 1.65;
           min-height: 100vh;
           padding-top: 72px;
         }
@@ -472,8 +474,129 @@ export function LightningDesignSystemDemo() {
           color: #a8a8a8 !important;
           border-color: #d8d8d8 !important;
         }
+
+        /* 44px min height satisfies WCAG 2.5.5 touch target + AA contrast overrides */
+        .dmv-demo-root .slds-button {
+          font-size: 0.9375rem !important;
+          padding: 0 1.25rem !important;
+          min-height: 2.75rem !important;
+          line-height: 2.75rem !important;
+        }
+
+        .dmv-demo-root .slds-button_brand {
+          background-color: #0b5cab !important;
+          border-color: #0b5cab !important;
+          color: #ffffff !important;
+        }
+
+        .dmv-demo-root .slds-button_brand:hover {
+          background-color: #014486 !important;
+          border-color: #014486 !important;
+        }
+
+        /* neutral button: SLDS #0176d3 is 4.41:1 — darken to pass AA */
+        .dmv-demo-root .slds-button_neutral {
+          color: #0b5cab !important;
+          border-color: #5c5c5c !important;
+        }
         .dmv-demo-root .slds-text-color_weak {
           color: #5c5c5c !important;
+        }
+
+        /* Modals render in a React portal outside dmv-demo-root — replicate all overrides */
+        .slds-modal__container,
+        .slds-modal__container * {
+          font-family: 'Salesforce Sans', Arial, sans-serif !important;
+        }
+
+        .slds-modal__header h1,
+        .slds-modal__header h2 {
+          font-size: 1.125rem !important;
+          font-weight: 700 !important;
+        }
+
+        .slds-modal__content p,
+        .slds-modal__content li {
+          font-size: 1rem !important;
+          line-height: 1.65 !important;
+        }
+
+        .slds-modal__content td,
+        .slds-modal__content th {
+          font-size: 1rem !important;
+          font-family: 'Salesforce Sans', Arial, sans-serif !important;
+        }
+
+        .slds-modal .slds-text-body_small {
+          font-size: 0.9375rem !important;
+          line-height: 1.5 !important;
+        }
+
+        .slds-modal .slds-text-color_weak {
+          color: #5c5c5c !important;
+        }
+
+        .slds-modal .slds-form-element__label {
+          font-size: 1rem !important;
+          line-height: 1.65 !important;
+        }
+
+        .slds-modal .slds-button {
+          font-size: 0.9375rem !important;
+          min-height: 2.75rem !important;
+          line-height: 2.75rem !important;
+        }
+
+        .slds-modal .slds-button_brand {
+          background-color: #0b5cab !important;
+          border-color: #0b5cab !important;
+          color: #ffffff !important;
+        }
+
+        .slds-modal .slds-button_brand:hover {
+          background-color: #014486 !important;
+          border-color: #014486 !important;
+        }
+
+        .slds-modal .slds-button_neutral {
+          color: #0b5cab !important;
+          border-color: #5c5c5c !important;
+        }
+
+        .slds-modal .slds-button:disabled,
+        .slds-modal .slds-button[disabled] {
+          color: #a8a8a8 !important;
+          border-color: #d8d8d8 !important;
+        }
+
+        /* WCAG 1.4.11: form control borders must be 3:1 against adjacent bg */
+        .dmv-demo-root .slds-checkbox_faux,
+        .dmv-demo-root .slds-radio_faux {
+          border-color: #5c5c5c !important;
+        }
+
+        .dmv-demo-root .slds-input,
+        .dmv-demo-root .slds-textarea {
+          border-color: #5c5c5c !important;
+        }
+
+        .slds-modal .slds-checkbox_faux,
+        .slds-modal .slds-radio_faux {
+          border-color: #5c5c5c !important;
+        }
+
+        .slds-modal .slds-input,
+        .slds-modal .slds-textarea {
+          border-color: #5c5c5c !important;
+        }
+
+        .slds-modal a:focus-visible,
+        .slds-modal button:focus-visible,
+        .slds-modal input:focus-visible,
+        .slds-modal textarea:focus-visible {
+          outline: 3px solid #0b5cab !important;
+          outline-offset: 2px;
+          box-shadow: 0 0 0 2px #ffffff, 0 0 0 5px #0b5cab !important;
         }
 
         /* Tighten card header→body gap: SLDS stacks body margin + content top padding */
@@ -504,20 +627,20 @@ export function LightningDesignSystemDemo() {
         /* Normalize base paragraph text inside cards */
         .dmv-demo-root .slds-p-around_medium p:not(.slds-text-color_error):not(.slds-text-color_weak),
         .dmv-demo-root .foundation-tile p:not(.slds-text-color_error):not(.slds-text-color_weak) {
-          font-size: 0.875rem;
-          line-height: 1.5;
+          font-size: 1rem;
+          line-height: 1.55;
           color: var(--slds-g-color-neutral-base-10, #181818);
         }
 
         /* Consistent weak/secondary text */
         .dmv-demo-root .slds-text-color_weak {
           color: #5c5c5c !important;
-          font-size: 0.8125rem;
+          font-size: 0.9375rem;
         }
 
         /* Caps labels — less aggressive, more readable */
         .dmv-demo-root .slds-text-title_caps {
-          font-size: 0.6875rem !important;
+          font-size: 0.75rem !important;
           letter-spacing: 0.06em !important;
           font-weight: 600 !important;
           color: #5c5c5c !important;
@@ -527,7 +650,7 @@ export function LightningDesignSystemDemo() {
 
         /* Tile primary values — consistent size, not overblown */
         .dmv-demo-root .foundation-tile .slds-text-heading_small {
-          font-size: 1rem !important;
+          font-size: 1.125rem !important;
           font-weight: 600 !important;
           line-height: 1.3 !important;
           color: var(--slds-g-color-neutral-base-10, #181818) !important;
@@ -535,21 +658,21 @@ export function LightningDesignSystemDemo() {
 
         /* Card headings — consistent with SLDS but grounded */
         .dmv-demo-root .slds-card__header h2 {
-          font-size: 0.875rem !important;
+          font-size: 1rem !important;
           font-weight: 700 !important;
           letter-spacing: 0 !important;
         }
 
         /* Body small — consistent secondary text */
         .dmv-demo-root .slds-text-body_small {
-          font-size: 0.8125rem !important;
-          line-height: 1.45 !important;
+          font-size: 0.9375rem !important;
+          line-height: 1.5 !important;
         }
 
         /* Checkbox and radio labels — match body text */
         .dmv-demo-root .slds-form-element__label {
-          font-size: 0.875rem !important;
-          line-height: 1.5 !important;
+          font-size: 1rem !important;
+          line-height: 1.55 !important;
           color: var(--slds-g-color-neutral-base-10, #181818) !important;
         }
 
@@ -640,12 +763,12 @@ export function LightningDesignSystemDemo() {
         .workflow-steps-list li {
           position: relative;
           margin: 0;
-          padding: 8px 10px 8px 36px;
+          padding: 10px 12px 10px 40px;
           border: 1px solid var(--slds-g-color-border-base-1, #d8dde6);
           border-radius: 0.25rem;
           background: var(--slds-g-color-neutral-base-100, #ffffff);
-          font-size: 0.875rem;
-          line-height: 1.45;
+          font-size: 1rem;
+          line-height: 1.5;
         }
 
         .workflow-step-item {
@@ -663,7 +786,7 @@ export function LightningDesignSystemDemo() {
         .workflow-step-indicator {
           flex-shrink: 0;
           margin-top: 1px;
-          font-size: 0.6875rem;
+          font-size: 0.75rem;
           font-weight: 700;
           letter-spacing: 0.04em;
           text-transform: uppercase;
@@ -695,14 +818,14 @@ export function LightningDesignSystemDemo() {
           content: counter(workflow-step);
           position: absolute;
           left: 10px;
-          top: 9px;
-          width: 18px;
-          height: 18px;
+          top: 10px;
+          width: 20px;
+          height: 20px;
           border-radius: 50%;
           border: 1px solid var(--slds-g-color-border-base-1, #d8dde6);
-          color: var(--slds-g-color-neutral-base-50, #747474);
-          font-size: 0.6875rem;
-          line-height: 16px;
+          color: #5c5c5c;
+          font-size: 0.75rem;
+          line-height: 18px;
           text-align: center;
           font-weight: 700;
         }
@@ -738,12 +861,13 @@ export function LightningDesignSystemDemo() {
 
         .workflow-missing-note {
           margin-top: 12px;
-          padding: 8px 12px;
+          padding: 10px 14px;
           background: var(--slds-g-color-error-base-95, #fff1f1);
           border: 1px solid var(--slds-g-color-error-base-40, #ba0517);
           border-radius: 0.25rem;
           color: var(--slds-g-color-error-base-40, #ba0517) !important;
-          font-weight: 500;
+          font-size: 1rem;
+          font-weight: 600;
         }
 
         .dmv-step-header {
@@ -782,8 +906,8 @@ export function LightningDesignSystemDemo() {
         .case-meta-label {
           margin: 0;
           color: #5c5c5c;
-          font-size: 0.6875rem;
-          letter-spacing: 0.08em;
+          font-size: 0.75rem;
+          letter-spacing: 0.06em;
           text-transform: uppercase;
           line-height: 1.4;
         }
@@ -791,8 +915,8 @@ export function LightningDesignSystemDemo() {
         .case-meta-value {
           margin: 0;
           color: var(--slds-g-color-neutral-base-10, #181818);
-          font-size: 0.875rem;
-          line-height: 1.35;
+          font-size: 1rem;
+          line-height: 1.4;
           font-weight: 500;
         }
 
@@ -1045,7 +1169,7 @@ export function LightningDesignSystemDemo() {
             trail={[
               <Link key="home" href="/">Home</Link>,
               <Link key="ops" href="/work/design-system-migration/demo">DMV Operations</Link>,
-              <span key="portal" style={{ paddingLeft: '0.5rem' }}>Employee Portal</span>,
+              <span key="portal" style={{ paddingLeft: '0.5rem' }} aria-current="page">Employee Portal</span>,
             ]}
           />
 
@@ -1205,7 +1329,7 @@ export function LightningDesignSystemDemo() {
                         <div className="slds-m-top_x-small">
                           <Checkbox labels={{ label: 'Required document reviewed and accepted' }} checked={photoConfirmed} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setPhotoConfirmed(event.target?.checked ?? false)} />
                         </div>
-                        <p className="slds-m-top_medium slds-text-color_weak">
+                        <p className="slds-m-top_medium slds-text-color_weak" role="status" aria-live="polite">
                           {allCoreChecksConfirmed ? (allDocumentsReady ? 'All confirmations complete.' : `Confirmations complete. Required document still pending: ${nextRequiredDocument}.`) : 'Complete all confirmations before compliance and issuance.'}
                         </p>
                       </div>
@@ -1238,6 +1362,8 @@ export function LightningDesignSystemDemo() {
                               <Button label="Issue and close ticket" variant="brand" onClick={handleCloseTicket} />
                             ) : canRunCompliance ? (
                               <Button label="Run compliance check" variant="brand" onClick={handleEverythingChecksOut} />
+                            ) : ['Approved', 'Follow-up scheduled'].includes(activeTicket.status) ? (
+                              <Button label="Next in queue" variant="brand" onClick={handleOpenQueueModal} />
                             ) : (
                               <Button label="Run compliance check" variant="neutral" disabled
                                 aria-describedby="compliance-hint"
@@ -1316,7 +1442,7 @@ export function LightningDesignSystemDemo() {
                             return (
                               <div key={doc} className={`case-doc-row${!isVerified ? ' case-doc-missing' : ''}`}>
                                 <span className="slds-text-body_small">{doc}</span>
-                                <span className={`slds-badge ${isVerified ? 'slds-theme_success' : 'slds-theme_warning'}`} style={{ flexShrink: 0, fontSize: '0.625rem', whiteSpace: 'nowrap' }}>
+                                <span className={`slds-badge ${isVerified ? 'slds-theme_success' : 'slds-theme_warning'}`} style={{ flexShrink: 0, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                                   {isVerified ? 'Verified' : 'Missing'}
                                 </span>
                               </div>
@@ -1374,12 +1500,12 @@ export function LightningDesignSystemDemo() {
           contentClassName="queue-modal__content"
           contentStyle={{ padding: 0 }}
           footer={
-            <div className="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-wrap" role="group">
+            <div className="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-wrap">
               <div className="slds-button-group" role="group" aria-label="Queue pagination">
                 <Button label="Previous" variant="neutral" disabled={clampedQueuePage === 1} onClick={() => setQueuePage((page) => Math.max(1, page - 1))} />
                 <Button label="Next" variant="neutral" disabled={clampedQueuePage === queuePageCount} onClick={() => setQueuePage((page) => Math.min(queuePageCount, page + 1))} />
               </div>
-              <p className="slds-text-body_small slds-text-color_weak">
+              <p className="slds-text-body_small slds-text-color_weak" role="status" aria-live="polite" aria-atomic="true">
                 Page {clampedQueuePage} of {queuePageCount} · Showing {pagedPendingTickets.length} of {pendingTickets.length} pending tickets
               </p>
               <Button label="Close" variant="neutral" onClick={() => setIsQueueModalOpen(false)} />
@@ -1424,7 +1550,7 @@ export function LightningDesignSystemDemo() {
           onRequestClose={() => setIsRescheduleModalOpen(false)}
         >
           <div className="slds-p-around_medium slds-form_stacked">
-            <p className="slds-m-bottom_medium">This case cannot be completed until missing mandatory documents are provided.</p>
+            <p className="slds-m-bottom_medium" role="note">This case cannot be completed until missing mandatory documents are provided.</p>
             <Input
               label="Return appointment"
               value={rescheduleDate}
@@ -1436,7 +1562,7 @@ export function LightningDesignSystemDemo() {
               value={rescheduleNote}
               onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => setRescheduleNote(event.target?.value ?? '')}
             />
-            <p className="slds-m-top_medium"><strong>Missing documents:</strong> {missingDocuments.join(', ') || 'None'}</p>
+            <p className="slds-m-top_medium" aria-live="polite"><strong>Missing documents:</strong> {missingDocuments.join(', ') || 'None'}</p>
           </div>
         </Modal>
 
