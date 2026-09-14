@@ -170,7 +170,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                   src={study.heroScreenUrl}
                   alt={study.title}
                   fill
-                  className="object-cover"
+                  className="object-contain bg-[#0B1830]"
                   sizes="(max-width: 768px) 100vw, 1200px"
                   priority
                 />
@@ -201,7 +201,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                   src={study.heroScreenUrl}
                   alt={study.title}
                   fill
-                  className="object-cover"
+                  className="object-contain bg-[#0B1830]"
                   sizes="(max-width: 768px) 100vw, 1200px"
                   priority
                 />
@@ -331,7 +331,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                             src={pair.beforeImage}
                             alt={pair.beforeAlt}
                             fill
-                            className="object-cover"
+                            className="object-contain bg-white"
                             sizes="(max-width: 768px) 100vw, 600px"
                           />
                         </div>
@@ -381,7 +381,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                             src={pair.afterImage}
                             alt={pair.afterAlt}
                             fill
-                            className="object-cover"
+                            className="object-contain bg-white"
                             sizes="(max-width: 768px) 100vw, 600px"
                           />
                         </div>
@@ -540,7 +540,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                         src={activeTabData.image}
                         alt={activeTabData.alt}
                         fill
-                        className="object-cover"
+                        className="object-contain bg-white"
                         sizes="(max-width: 768px) 100vw, 600px"
                       />
                     </div>
@@ -567,7 +567,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                         src={activeTab === "solution" ? "/images/trips tab.png" : "/images/category summary.png"}
                         alt={activeTab === "solution" ? "CCS+ Trade Board" : "Category Summary Gantt"}
                         fill
-                        className="object-cover"
+                        className="object-contain bg-white"
                         sizes="(max-width: 768px) 100vw, 600px"
                       />
                     </div>
@@ -709,7 +709,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                             src={dec.image}
                             alt={dec.title}
                             fill
-                            className="object-cover"
+                            className="object-contain bg-white"
                             sizes="(max-width: 768px) 100vw, 600px"
                           />
                         </div>

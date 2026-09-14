@@ -16,12 +16,9 @@ const skills = [
 export default function HomePage() {
   const [mousePos, setMousePos] = useState({ x: 0.5, y: 0.5 });
   const [scrollY, setScrollY] = useState(0);
-  const [mounted, setMounted] = useState(false);
   const heroRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    setMounted(true);
-
     const handleMove = (e: MouseEvent) => {
       if (!heroRef.current) return;
       const rect = heroRef.current.getBoundingClientRect();
@@ -80,7 +77,7 @@ export default function HomePage() {
         <div
           className="absolute inset-0 pointer-events-none transition-all duration-[1800ms] ease-out"
           style={{
-            background: `radial-gradient(ellipse 55% 45% at ${mounted ? mousePos.x * 100 : 50}% ${mounted ? mousePos.y * 100 : 50}%, rgba(75,163,227,0.12) 0%, transparent 70%)`,
+            background: `radial-gradient(ellipse 55% 45% at ${mousePos.x * 100}% ${mousePos.y * 100}%, rgba(75,163,227,0.12) 0%, transparent 70%)`,
           }}
         />
 

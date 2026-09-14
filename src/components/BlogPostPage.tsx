@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import type { BlogPost, BlogSection } from "@/content/blogPosts";
 
 interface Props {

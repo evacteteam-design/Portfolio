@@ -62,7 +62,6 @@ interface TrailParticle {
 
 export default function HomePage() {
   const [scrollY, setScrollY] = useState(0);
-  const [mounted, setMounted] = useState(false);
   const [activeCapability, setActiveCapability] = useState(0);
   const heroRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -71,8 +70,6 @@ export default function HomePage() {
   const rafRef = useRef<number>(0);
 
   useEffect(() => {
-    setMounted(true);
-
     const handleMove = (e: MouseEvent) => {
       if (!heroRef.current) return;
       const rect = heroRef.current.getBoundingClientRect();
@@ -193,13 +190,11 @@ export default function HomePage() {
 
         {/* Mouse-follow glow */}
         {/* Water trail canvas */}
-        {mounted && (
-          <canvas
-            ref={canvasRef}
-            className="absolute inset-0 w-full h-full pointer-events-none"
-            style={{ zIndex: 1 }}
-          />
-        )}
+        <canvas
+          ref={canvasRef}
+          className="absolute inset-0 w-full h-full pointer-events-none"
+          style={{ zIndex: 1 }}
+        />
 
         <div className="relative z-10 max-w-6xl mx-auto w-full">
 
