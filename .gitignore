@@ -19,6 +19,7 @@
 
 # production
 /build
+/packages/design-system/dist/
 
 # misc
 .DS_Store

@@ -477,6 +477,142 @@ export default function HomePage() {
       </section>
 
       {/* ═══════════════════════════════════════════════════
+          DESIGN SYSTEM — Reusable component library
+          ═══════════════════════════════════════════════════ */}
+      <section
+        id="design-system"
+        className="relative overflow-hidden border-t border-[var(--border)] px-4 py-16 sm:px-6 sm:py-24 md:px-14 md:py-28"
+        style={{ background: "linear-gradient(160deg, #F6FAFF 0%, #EAF2FB 100%)" }}
+      >
+        <div className="relative mx-auto grid max-w-[var(--max-w)] grid-cols-1 items-center gap-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:gap-16">
+          <div className="min-w-0">
+            <Reveal>
+              <p className="mb-4 flex items-center gap-2 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--accent-light)]">
+                <span className="h-2 w-2 rounded-full bg-[var(--accent)]" aria-hidden="true" />
+                Open React component library
+              </p>
+            </Reveal>
+
+            <Reveal delay={1}>
+              <h2 className="mb-6 font-[family-name:var(--font-instrument-serif)] text-[clamp(2rem,3.8vw,3.375rem)] leading-[1.07] tracking-[-0.025em] text-[var(--black)]">
+                A design system <em className="italic text-[var(--accent-light)]">made to be reused.</em>
+              </h2>
+            </Reveal>
+
+            <Reveal delay={2}>
+              <p className="mb-8 max-w-xl text-[15px] leading-[1.85] text-[var(--ink2)] sm:text-[16px]">
+                Explore a working React + TypeScript library with themeable design tokens, accessible
+                components, live examples, and copyable code. From buttons and form controls to dialogs,
+                navigation, and data tables, the same patterns are ready to adapt to your product.
+              </p>
+            </Reveal>
+
+            <Reveal delay={3}>
+              <div className="flex flex-col gap-4">
+                <a
+                  href="/design-system"
+                  className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--accent-dark)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent)] sm:w-fit"
+                >
+                  Explore the design system
+                  <span aria-hidden="true">↗</span>
+                </a>
+                <div className="flex flex-wrap gap-2" aria-label="Design system highlights">
+                  <span className="rounded-full border border-[var(--border)] bg-white/70 px-3 py-1.5 text-[11px] font-medium text-[var(--ink2)]">30 catalog entries</span>
+                  <span className="rounded-full border border-[var(--border)] bg-white/70 px-3 py-1.5 text-[11px] font-medium text-[var(--ink2)]">React + TypeScript</span>
+                  <span className="rounded-full border border-[var(--border)] bg-white/70 px-3 py-1.5 text-[11px] font-medium text-[var(--ink2)]">MIT licensed</span>
+                </div>
+              </div>
+            </Reveal>
+          </div>
+
+          <Reveal delay={2} direction="scale" className="min-w-0">
+            <div
+              className="relative min-w-0 overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-[0_28px_90px_rgba(22,42,66,0.14)]"
+              aria-label="Preview of the reusable design system data table"
+            >
+              <div className="flex items-center gap-3 border-b border-[var(--border)] bg-white px-4 py-3 sm:px-5">
+                <div className="flex gap-1.5" aria-hidden="true">
+                  <span className="h-2 w-2 rounded-full bg-[#F08B83]" />
+                  <span className="h-2 w-2 rounded-full bg-[#F1C36B]" />
+                  <span className="h-2 w-2 rounded-full bg-[#76C6A1]" />
+                </div>
+                <div className="min-w-0 flex-1 truncate rounded-md bg-[var(--white)] px-3 py-1 text-center text-[9px] tracking-wide text-[var(--ink3)]">
+                  akhil.design / design-system / data-table
+                </div>
+                <span className="hidden shrink-0 text-[10px] font-medium text-[var(--ink3)] sm:block">LIVE PREVIEW</span>
+              </div>
+
+              <div className="min-w-0 bg-[#F5F8FC] p-3 sm:p-5">
+                <div className="mb-4 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
+                  <div className="min-w-0">
+                    <p className="text-[13px] font-semibold text-[var(--ink)] sm:text-[15px]">Team members</p>
+                    <p className="mt-0.5 text-[10px] text-[var(--ink3)] sm:text-[11px]">Search, filter, sort, and manage dense data</p>
+                  </div>
+                  <div className="flex shrink-0 gap-2">
+                    <span className="rounded-full border border-[var(--border)] bg-white px-2.5 py-1 text-[9px] font-medium text-[var(--ink2)]">30 columns</span>
+                    <span className="rounded-full border border-[var(--border)] bg-white px-2.5 py-1 text-[9px] font-medium text-[var(--ink2)]">100 rows</span>
+                  </div>
+                </div>
+
+                <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
+                  <div className="min-w-0 rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-[10px] text-[var(--ink3)] sm:text-[11px]">
+                    <span className="mr-2 text-[var(--accent)]" aria-hidden="true">⌕</span>Search people, roles, status…
+                  </div>
+                  <span className="rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-[10px] text-[var(--ink2)]">Role&nbsp; · &nbsp;All roles</span>
+                  <span className="rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-[10px] text-[var(--ink2)]">Columns&nbsp; 4/30</span>
+                </div>
+
+                <div className="overflow-hidden rounded-xl border border-[var(--border)] bg-white shadow-sm">
+                  <div className="overflow-x-auto">
+                    <table className="w-full min-w-[480px] border-collapse text-left text-[10px] sm:text-[11px]">
+                      <thead className="bg-[#EDF4FB] text-[9px] uppercase tracking-[0.08em] text-[var(--ink3)]">
+                        <tr>
+                          <th scope="col" className="sticky left-0 z-10 bg-[#EDF4FB] px-3 py-2.5">Member ↕</th>
+                          <th scope="col" className="px-3 py-2.5">Role ↕</th>
+                          <th scope="col" className="px-3 py-2.5">Status</th>
+                          <th scope="col" className="px-3 py-2.5">Department</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[var(--border)] text-[var(--ink2)]">
+                        <tr>
+                          <th scope="row" className="sticky left-0 z-10 bg-white px-3 py-2.5 font-semibold text-[var(--ink)]">Maya Chen</th>
+                          <td className="px-3 py-2.5">Product designer</td>
+                          <td className="px-3 py-2.5"><span className="rounded-full bg-emerald-50 px-2 py-1 font-medium text-emerald-700">Active</span></td>
+                          <td className="px-3 py-2.5">Design</td>
+                        </tr>
+                        <tr>
+                          <th scope="row" className="sticky left-0 z-10 bg-white px-3 py-2.5 font-semibold text-[var(--ink)]">Jordan Lee</th>
+                          <td className="px-3 py-2.5">Engineer</td>
+                          <td className="px-3 py-2.5"><span className="rounded-full bg-amber-50 px-2 py-1 font-medium text-amber-700">In review</span></td>
+                          <td className="px-3 py-2.5">Engineering</td>
+                        </tr>
+                        <tr>
+                          <th scope="row" className="sticky left-0 z-10 bg-white px-3 py-2.5 font-semibold text-[var(--ink)]">Priya Shah</th>
+                          <td className="px-3 py-2.5">Product manager</td>
+                          <td className="px-3 py-2.5"><span className="rounded-full bg-emerald-50 px-2 py-1 font-medium text-emerald-700">Active</span></td>
+                          <td className="px-3 py-2.5">Product</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[var(--border)] px-3 py-2.5 text-[9px] text-[var(--ink3)] sm:px-4 sm:text-[10px]">
+                    <span>1–10 of 100 results</span>
+                    <span className="inline-flex items-center gap-1.5">
+                      <span className="rounded-md border border-[var(--border)] px-2 py-1">Rows&nbsp; 10</span>
+                      <span className="rounded-md border border-[var(--border)] px-2 py-1" aria-label="Previous page">←</span>
+                      <span className="rounded-md bg-[var(--accent)] px-2 py-1 font-semibold text-white">1</span>
+                      <span className="rounded-md border border-[var(--border)] px-2 py-1">2</span>
+                      <span className="rounded-md border border-[var(--border)] px-2 py-1" aria-label="Next page">→</span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ═══════════════════════════════════════════════════
           FEATURED PROJECTS
           ═══════════════════════════════════════════════════ */}
       <section id="work" className="py-16 sm:py-24 md:py-32 px-4 sm:px-6 md:px-14 border-t border-[var(--border)] relative overflow-hidden">
@@ -673,4 +809,3 @@ export default function HomePage() {
     </>
   );
 }
-

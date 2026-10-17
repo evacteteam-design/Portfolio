@@ -2,13 +2,21 @@
   "name": "akhil-portfolio",
   "version": "0.1.0",
   "private": true,
+  "workspaces": [
+    "packages/design-system"
+  ],
   "scripts": {
+    "build:design-system": "tsc -p packages/design-system/tsconfig.json",
+    "predev": "npm run build:design-system",
     "dev": "next dev --webpack",
+    "prebuild": "npm run build:design-system",
     "build": "next build --webpack",
+    "prestart": "npm run build:design-system",
     "start": "next start",
     "lint": "eslint"
   },
   "dependencies": {
+    "@akhil-vanga/design-system": "0.1.0",
     "@salesforce-ux/design-system": "^2.25.0-alpha.2",
     "@salesforce/design-system-react": "^0.10.65",
     "lenis": "^1.3.21",

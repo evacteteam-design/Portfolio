@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { Baloo_2, DM_Mono, Poppins } from "next/font/google";
 import "./globals.css";
+import "@akhil-vanga/design-system/styles.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { SmoothScroll } from "@/components/SmoothScroll";
