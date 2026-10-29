@@ -32,6 +32,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
   const constraintsSection = study.sections.find((s) => s.id === "constraints");
   const tabOrder: StudyTabId[] = study.tabs?.map((tab) => tab.id) ?? ["problem", "solution", "challenge", "summary"];
   const activeTabData = study.tabs?.find((tab) => tab.id === activeTab);
+  const caseStudyImageAspect = study.slug === "design-system-migration" ? "1680/1100" : "16/9";
   const navItems = ["context", "research", "decisions", "impact"];
   if (study.beforeAfter && study.beforeAfter.length > 0) {
     navItems.splice(1, 0, "before-after");
@@ -70,7 +71,11 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                 navMode === "hero" ? "text-white/55" : "text-[var(--ink3)]"
               }`}
             >
-              {id === "before-after" ? "Before & After" : id}
+              {id === "before-after"
+                ? "Before & After"
+                : id === "research" && study.slug === "design-system-migration"
+                  ? "Assumptions & scope"
+                  : id}
             </a>
           ))}
         </div>
@@ -130,8 +135,8 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
               { label: "Role", value: study.role },
               { label: "Platform", value: study.platform },
               { label: "Users", value: study.users },
-              { label: "Duration", value: study.duration },
-              { label: "Impact", value: study.impactHeadline },
+              { label: study.slug === "design-system-migration" ? "Project type" : "Duration", value: study.duration },
+              { label: study.slug === "design-system-migration" ? "Scope" : "Impact", value: study.impactHeadline },
             ].map((m) => (
               <div key={m.label} className="px-3 sm:px-5 py-3 sm:py-4 border-r border-b border-white/12">
                 <p className="text-[9px] sm:text-[10px] tracking-[0.12em] uppercase text-white/35 mb-1">{m.label}</p>
@@ -152,10 +157,10 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                 className="inline-flex items-center rounded-full px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
                 style={{ background: study.accentColor }}
               >
-                Open SLDS demo
+                Open interactive prototype
               </Link>
               <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-sm text-white/80">
-                Interactive case workspace · modal · tabs · data grid
+                Assumption-based renewal and first-time application flow
               </span>
             </div>
           )}
@@ -165,24 +170,22 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
         <div className="hero-anim-5 relative z-10 px-4 sm:px-6 md:px-14 max-w-[var(--max-w)] w-full mx-auto">
           {study.slug === "design-system-migration" ? (
             <div className="relative overflow-hidden rounded-[28px] sm:rounded-[34px] border border-white/14 shadow-[0_32px_80px_rgba(0,0,0,0.5),0_8px_32px_rgba(0,0,0,0.3)] mb-10 sm:mb-16">
-              <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
+              <div
+                className="relative w-full"
+                style={{ aspectRatio: caseStudyImageAspect }}
+              >
                 <Image
                   src={study.heroScreenUrl}
-                  alt={study.title}
+                  alt={study.heroScreenCaption}
                   fill
                   className="object-contain bg-[#0B1830]"
                   sizes="(max-width: 768px) 100vw, 1200px"
                   priority
                 />
-                <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(8,20,44,0.08)_0%,rgba(8,20,44,0.24)_46%,rgba(8,20,44,0.72)_100%)]" />
-                <div className="absolute inset-x-0 bottom-0 px-5 pb-5 sm:px-8 sm:pb-8 md:px-10 md:pb-10">
-                  <div className="inline-block rounded-lg border border-white/25 bg-[#3145F5]/78 px-4 py-2.5 sm:px-6 sm:py-3 backdrop-blur-sm">
-                    <p className="font-[family-name:var(--font-instrument-serif)] text-[clamp(1.3rem,4vw,4rem)] leading-[1.02] tracking-[-0.02em] text-white">
-                      Lightning Design System 2
-                    </p>
-                  </div>
-                </div>
               </div>
+              <p className="border-t border-white/10 bg-[#0B1830] px-4 py-3 text-xs text-white/70 sm:px-6">
+                {study.heroScreenCaption}
+              </p>
             </div>
           ) : (
             <div className="rounded-lg sm:rounded-xl overflow-hidden border border-white/12 shadow-[0_32px_80px_rgba(0,0,0,0.5),0_8px_32px_rgba(0,0,0,0.3)] mb-10 sm:mb-16">
@@ -196,10 +199,13 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                   {study.heroScreenCaption}
                 </div>
               </div>
-              <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
+              <div
+                className="relative w-full"
+                style={{ aspectRatio: caseStudyImageAspect }}
+              >
                 <Image
                   src={study.heroScreenUrl}
-                  alt={study.title}
+                  alt={study.heroScreenCaption}
                   fill
                   className="object-contain bg-[#0B1830]"
                   sizes="(max-width: 768px) 100vw, 1200px"
@@ -477,6 +483,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                   <button
                     key={tab}
                     onClick={() => setActiveTab(tab)}
+                    aria-pressed={activeTab === tab}
                     className={`px-3 sm:px-5 md:px-6 py-2 sm:py-2.5 text-[10px] sm:text-[12px] font-medium tracking-[0.06em] uppercase border-r last:border-r-0 border-[var(--border)] transition-colors ${
                       activeTab === tab
                         ? "text-white"
@@ -484,7 +491,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                     }`}
                     style={activeTab === tab ? { background: study.accentDark } : {}}
                   >
-                    {tab}
+                    {tab.replace(/-/g, " ")}
                   </button>
                 ))}
               </div>
@@ -493,7 +500,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 sm:gap-12 pt-8 sm:pt-12">
               <div>
                 <p className="font-[family-name:var(--font-instrument-serif)] text-[40px] sm:text-[72px] leading-none text-[var(--accent-dark)]/5 mb-[-8px] sm:mb-[-12px] tracking-[-0.04em]">
-                  {activeTab === "problem" || activeTab === "system-fluency" ? "01" : activeTab === "solution" || activeTab === "pattern-discipline" ? "02" : activeTab === "challenge" || activeTab === "governance" ? "03" : "04"}
+                  {String(tabOrder.indexOf(activeTab) + 1).padStart(2, "0")}
                 </p>
                 <p className="font-[family-name:var(--font-instrument-serif)] text-[22px] sm:text-[28px] leading-snug tracking-[-0.02em] text-[var(--black)] mb-4">
                   {activeTabData?.title ?? (
@@ -535,7 +542,10 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                         </span>
                       </div>
                     )}
-                    <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
+                    <div
+                      className={`relative w-full ${activeTabData.imageAspectRatio ? "mx-auto max-w-[390px]" : ""}`}
+                      style={{ aspectRatio: activeTabData.imageAspectRatio ?? caseStudyImageAspect }}
+                    >
                       <Image
                         src={activeTabData.image}
                         alt={activeTabData.alt}
@@ -562,7 +572,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                         {activeTab === "solution" ? "ccsplus.ual.com / trade-center / trips" : "Category Summary — March bid period"}
                       </span>
                     </div>
-                    <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
+                    <div className="relative w-full" style={{ aspectRatio: caseStudyImageAspect }}>
                       <Image
                         src={activeTab === "solution" ? "/images/trips tab.png" : "/images/category summary.png"}
                         alt={activeTab === "solution" ? "CCS+ Trade Board" : "Category Summary Gantt"}
@@ -704,10 +714,10 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                         </div>
                       )}
                       {dec.image ? (
-                        <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
+                        <div className="relative w-full" style={{ aspectRatio: caseStudyImageAspect }}>
                           <Image
                             src={dec.image}
-                            alt={dec.title}
+                            alt={dec.imageAlt ?? dec.title}
                             fill
                             className="object-contain bg-white"
                             sizes="(max-width: 768px) 100vw, 600px"

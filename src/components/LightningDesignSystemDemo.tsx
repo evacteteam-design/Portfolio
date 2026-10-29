@@ -1,126 +1,112 @@
 'use client';
 
 import Link from 'next/link';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
-  Breadcrumb,
   Button,
   Card,
-  Checkbox,
   DataTable,
-  DataTableCell,
   DataTableColumn,
-  Icon,
-  IconSettings,
-  Input,
-  Modal,
-  PageHeader,
-  PageHeaderControl,
-  ProgressBar,
-  Radio,
-  RadioGroup,
-  Textarea,
-  Settings,
 } from '@salesforce/design-system-react';
 
 const SLDS_STYLESHEET_HREF = '/slds/salesforce-lightning-design-system.min.css';
 const SLDS_STYLESHEET_ID = 'slds-demo-stylesheet';
-const QUEUE_PAGE_SIZE = 5;
+const STEP_TITLES = ['Identity & eligibility', 'Documents', 'Screening & review', 'Payment & license'];
+const STEP_ACTIONS = ['Confirm identity and eligibility', 'Review required documents', 'Record screening results', 'Record payment and issue license'];
+const COUNTER_NUMBER = '4';
+const COUNTER = `Counter ${COUNTER_NUMBER}`;
+const CLERK = 'J. Alvarez';
 
-// Must run before any Modal renders to register the aria-hidden target element
-if (typeof window !== 'undefined') {
-  Settings.setAppElement(document.body);
-}
+type FlowId = 'renewal' | 'new-license';
+type DocumentStatus = 'needed' | 'verified';
+type QueueStatus = 'waiting' | 'in-progress' | 'completed';
 
-type QueueFilterId = 'all' | 'documents' | 'renewal' | 'callbacks' | 'compliance';
+type FlowDefinition = {
+  id: FlowId;
+  name: string;
+  service: string;
+  licenseLabel: string;
+  documents: string[];
+  checks: string[];
+  fee: string;
+};
 
-type TicketRow = {
+type Ticket = {
   id: string;
   customer: string;
-  service: string;
-  counter: string;
-  owner: string;
-  visitType: 'First-time visit' | 'Returning customer';
-  lastVisit: string;
-  priorSubmissions: string[];
-  priority: 'High' | 'Medium' | 'Low';
-  status: 'Ready for review' | 'Documents pending' | 'Needs verification' | 'Awaiting signature' | 'Approved' | 'Follow-up scheduled';
-  due: string;
-  category: QueueFilterId;
-  reviewMins: number;
-  docsVerified: number;
-  docsRequired: number;
-  lastUpdated: string;
-  history: string[];
-  nextAction: string;
-  exceptionState?: string;
+  flowId: FlowId;
+  arrival: string;
+  wait: string;
+  licenseDetail: string;
 };
 
-const initialTickets: TicketRow[] = [
-  { id: 'A-1042', customer: 'Mina Patel', service: 'License renewal', counter: 'Counter 4', owner: 'J. Alvarez', visitType: 'Returning customer', lastVisit: 'Visited 8 months ago for address update', priorSubmissions: ['Proof of address', 'State-issued ID'], priority: 'High', status: 'Ready for review', due: '09:10 AM', category: 'renewal', reviewMins: 8, docsVerified: 3, docsRequired: 4, lastUpdated: '2 min ago', history: ['Check-in completed', 'Payment posted by cashier'], nextAction: 'Verify final affidavit and issue renewal' },
-  { id: 'A-1036', customer: 'Jacob Chen', service: 'ID replacement', counter: 'Counter 2', owner: 'L. Gomez', visitType: 'First-time visit', lastVisit: 'No previous DMV visit on file', priorSubmissions: [], priority: 'Medium', status: 'Documents pending', due: '09:20 AM', category: 'documents', reviewMins: 11, docsVerified: 2, docsRequired: 4, lastUpdated: '5 min ago', history: ['Photo mismatch flagged', 'Proof of address requested'], nextAction: 'Collect missing address proof' },
-  { id: 'A-1028', customer: 'Alicia Gomez', service: 'Vehicle registration', counter: 'Counter 6', owner: 'R. Brooks', visitType: 'Returning customer', lastVisit: 'Visited 2 years ago for title transfer', priorSubmissions: ['Insurance uploaded'], priority: 'Low', status: 'Approved', due: '09:45 AM', category: 'callbacks', reviewMins: 6, docsVerified: 4, docsRequired: 4, lastUpdated: '8 min ago', history: ['VIN verified', 'Insurance uploaded'], nextAction: 'Complete plate handoff' },
-  { id: 'A-1021', customer: 'Noah Singh', service: 'Address change', counter: 'Counter 1', owner: 'S. Ortiz', visitType: 'Returning customer', lastVisit: 'Visited 3 months ago for duplicate license', priorSubmissions: ['Proof of address'], priority: 'High', status: 'Needs verification', due: '10:00 AM', category: 'compliance', reviewMins: 13, docsVerified: 2, docsRequired: 4, lastUpdated: '1 min ago', history: ['Fraud rule triggered', 'Supervisor review requested'], nextAction: 'Run secondary identity check' },
-  { id: 'A-1017', customer: 'Priya Shah', service: 'Commercial permit', counter: 'Counter 5', owner: 'D. Lee', visitType: 'Returning customer', lastVisit: 'Visited 14 days ago for permit pre-check', priorSubmissions: ['Medical certification', 'State-issued ID', 'Payment confirmation'], priority: 'Medium', status: 'Awaiting signature', due: '10:20 AM', category: 'renewal', reviewMins: 10, docsVerified: 4, docsRequired: 4, lastUpdated: '4 min ago', history: ['Medical certification uploaded', 'Inspector sign-off pending'], nextAction: 'Capture final supervisor signature' },
-  { id: 'A-1013', customer: 'Omar Hassan', service: 'License renewal', counter: 'Counter 3', owner: 'M. Diaz', visitType: 'Returning customer', lastVisit: 'Visited 5 years ago for original license issue', priorSubmissions: ['State-issued ID'], priority: 'Low', status: 'Ready for review', due: '10:40 AM', category: 'renewal', reviewMins: 7, docsVerified: 4, docsRequired: 4, lastUpdated: '7 min ago', history: ['Queue moved from kiosk lane'], nextAction: 'Finalize issuance and print receipt' },
-  { id: 'A-1009', customer: 'Lena Brooks', service: 'ID replacement', counter: 'Counter 2', owner: 'K. Morgan', visitType: 'First-time visit', lastVisit: 'No previous DMV visit on file', priorSubmissions: ['Name change court order'], priority: 'High', status: 'Needs verification', due: '11:00 AM', category: 'documents', reviewMins: 14, docsVerified: 1, docsRequired: 4, lastUpdated: '3 min ago', history: ['Name mismatch in legacy record'], nextAction: 'Validate legal name change document' },
-  { id: 'A-1006', customer: 'Daniel Wu', service: 'Vehicle registration', counter: 'Counter 6', owner: 'R. Brooks', visitType: 'Returning customer', lastVisit: 'Visited 1 week ago for lien release intake', priorSubmissions: ['Lien release scanned', 'Insurance uploaded'], priority: 'Medium', status: 'Ready for review', due: '11:15 AM', category: 'callbacks', reviewMins: 9, docsVerified: 3, docsRequired: 4, lastUpdated: '6 min ago', history: ['Lien release scanned'], nextAction: 'Collect final payment authorization' },
-  { id: 'A-1003', customer: 'Sara Ahmed', service: 'Address change', counter: 'Counter 1', owner: 'S. Ortiz', visitType: 'Returning customer', lastVisit: 'Visited yesterday through remote check-in', priorSubmissions: ['Remote address proof', 'Signed affidavit'], priority: 'Low', status: 'Follow-up scheduled', due: '11:35 AM', category: 'compliance', reviewMins: 5, docsVerified: 4, docsRequired: 4, lastUpdated: '9 min ago', history: ['Remote check-in completed'], nextAction: 'Send confirmation summary' },
-  { id: 'A-0998', customer: 'Victor Nguyen', service: 'Commercial permit', counter: 'Counter 5', owner: 'D. Lee', visitType: 'Returning customer', lastVisit: 'Visited 10 days ago for inspection intake', priorSubmissions: ['Inspection report uploaded', 'Payment confirmation'], priority: 'High', status: 'Approved', due: '11:50 AM', category: 'compliance', reviewMins: 12, docsVerified: 3, docsRequired: 4, lastUpdated: '2 min ago', history: ['Inspection report uploaded'], nextAction: 'Package permit for dispatch' },
-];
-
-const requiredDocuments = ['Proof of address', 'State-issued ID', 'Payment confirmation', 'Signed affidavit'];
-const workflowSteps = [
-  'Confirm customer identity and address details.',
-  'Check all mandatory documents listed in the case panel.',
-  'Run compliance check only after document completion.',
-  'If a document is missing, reschedule with clear instructions.',
-];
-
-type QueueActionCellProps = {
-  item?: TicketRow;
-  activeTicketId: string;
-  onOpenTicket: (ticket: TicketRow) => void;
+type FlowState = {
+  step: number;
+  identityChecks: boolean[];
+  documents: { status: DocumentStatus; fileName?: string; file?: File }[];
+  examChecks: boolean[];
+  paymentMethod: 'card' | 'cash' | '';
+  paymentRecorded: boolean;
+  issued: boolean;
 };
 
-function QueueActionCell(props: QueueActionCellProps) {
-  const ticket = props.item;
-  if (!ticket) {
-    return <DataTableCell {...props} />;
-  }
+type PreviewFile = {
+  documentName: string;
+  file: File;
+  url: string;
+};
 
-  return (
-    <DataTableCell {...props}>
-      {ticket.id === props.activeTicketId ? (
-        <span className="slds-badge slds-theme_success">Current ticket</span>
-      ) : (
-        <Button label={`Open ticket ${ticket.id}`} variant="neutral" onClick={() => props.onOpenTicket(ticket)} />
-      )}
-    </DataTableCell>
-  );
+const FLOWS: Record<FlowId, FlowDefinition> = {
+  renewal: {
+    id: 'renewal',
+    name: 'Expired license renewal',
+    service: 'Driver license renewal',
+    licenseLabel: 'License status',
+    documents: ['Current or expired driver license', 'Proof of residence', 'Signed renewal application'],
+    checks: ['Vision screening passed', 'Identity and renewal eligibility confirmed'],
+    fee: '$42.00',
+  },
+  'new-license': {
+    id: 'new-license',
+    name: 'First-time license application',
+    service: 'First-time driver license',
+    licenseLabel: 'Application type',
+    documents: ['Proof of identity and date of birth', 'Proof of residence', 'Social Security number or exemption'],
+    checks: ['Vision screening passed', 'Knowledge test passed', 'Identity and age eligibility confirmed'],
+    fee: '$58.00',
+  },
+};
+
+const TICKETS: Ticket[] = [
+  { id: 'A-1042', customer: 'Mina Patel', flowId: 'renewal', arrival: '9:02 AM', wait: '8 min', licenseDetail: 'Expired · eligible to renew' },
+  { id: 'A-1045', customer: 'Carlos Rivera', flowId: 'new-license', arrival: '9:05 AM', wait: '5 min', licenseDetail: 'First-time applicant · Class C' },
+  { id: 'A-1047', customer: 'Priya Shah', flowId: 'renewal', arrival: '9:08 AM', wait: '2 min', licenseDetail: 'Expired · eligible to renew' },
+  { id: 'A-1051', customer: 'Jordan Lee', flowId: 'new-license', arrival: '9:10 AM', wait: 'Just arrived', licenseDetail: 'First-time applicant · Class C' },
+  { id: 'A-1053', customer: 'Elena Garcia', flowId: 'new-license', arrival: '9:12 AM', wait: 'Just arrived', licenseDetail: 'First-time applicant · Class C' },
+];
+
+function createInitialFlowState(flowId: FlowId): FlowState {
+  const definition = FLOWS[flowId];
+
+  return {
+    step: 1,
+    identityChecks: [false, false],
+    documents: definition.documents.map(() => ({ status: 'needed' })),
+    examChecks: definition.checks.map(() => false),
+    paymentMethod: '',
+    paymentRecorded: false,
+    issued: false,
+  };
 }
-// Required by SLDS DataTable to recognise this as a custom cell renderer
-QueueActionCell.displayName = DataTableCell.displayName;
 
 export function LightningDesignSystemDemo() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isQueueModalOpen, setIsQueueModalOpen] = useState(false);
-  const [isRescheduleModalOpen, setIsRescheduleModalOpen] = useState(false);
-  const [queuePage, setQueuePage] = useState(1);
-  const [tickets, setTickets] = useState<TicketRow[]>(initialTickets);
-  const [selectedTicketId, setSelectedTicketId] = useState(initialTickets[0].id);
-  const [selectedPriority, setSelectedPriority] = useState('High');
-  const [rescheduleDate, setRescheduleDate] = useState('');
-  const [rescheduleNote, setRescheduleNote] = useState('Missing required documents');
-  const [caseDecision, setCaseDecision] = useState('');
-  const [caseDecisionNote, setCaseDecisionNote] = useState('');
-  const [identityConfirmed, setIdentityConfirmed] = useState(false);
-  const [addressConfirmed, setAddressConfirmed] = useState(false);
-  const [photoConfirmed, setPhotoConfirmed] = useState(false);
-  const [activityLog, setActivityLog] = useState<string[]>([
-    'Now serving A-1042 at Counter 4',
-    'A-1036 moved to Document queue for missing proof',
-  ]);
+  const [activeTicketId, setActiveTicketId] = useState<string | null>(null);
+  const [ticketStatuses, setTicketStatuses] = useState<Record<string, QueueStatus>>({});
+  const [flowStates, setFlowStates] = useState<Record<string, FlowState>>({});
+  const [announcement, setAnnouncement] = useState('');
+  const [previewFile, setPreviewFile] = useState<PreviewFile | null>(null);
+  const previewDialogRef = useRef<HTMLDialogElement>(null);
+  const previewUrlRef = useRef<string | null>(null);
 
   useEffect(() => {
     let link = document.getElementById(SLDS_STYLESHEET_ID) as HTMLLinkElement | null;
@@ -132,6 +118,7 @@ export function LightningDesignSystemDemo() {
       link.href = SLDS_STYLESHEET_HREF;
       document.head.appendChild(link);
     }
+
     return () => {
       if (createdHere) {
         document.getElementById(SLDS_STYLESHEET_ID)?.remove();
@@ -139,1467 +126,1314 @@ export function LightningDesignSystemDemo() {
     };
   }, []);
 
-  const sortedTickets = useMemo(() => {
-    const toMinutes = (due: string) => {
-      const [time, period] = due.split(' ');
-      const [hoursPart, minutesPart] = time.split(':');
-      const hours = Number(hoursPart);
-      const minutes = Number(minutesPart);
-      const normalizedHours = period === 'PM' && hours !== 12 ? hours + 12 : period === 'AM' && hours === 12 ? 0 : hours;
-      return normalizedHours * 60 + minutes;
+  useEffect(() => {
+    return () => {
+      if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
     };
-    return [...tickets].sort((a, b) => toMinutes(a.due) - toMinutes(b.due));
-  }, [tickets]);
+  }, []);
 
-  const pendingTickets = useMemo(
-    () => sortedTickets.filter((ticket) => !['Approved', 'Follow-up scheduled'].includes(ticket.status)),
-    [sortedTickets]
-  );
+  useEffect(() => {
+    const dialog = previewDialogRef.current;
+    if (!dialog) return;
 
-  const queuePageCount = Math.max(1, Math.ceil(pendingTickets.length / QUEUE_PAGE_SIZE));
-  const clampedQueuePage = Math.min(queuePage, queuePageCount);
+    if (previewFile && !dialog.open) dialog.showModal();
+    if (!previewFile && dialog.open) dialog.close();
+  }, [previewFile]);
 
-  const pagedPendingTickets = useMemo(() => {
-    const startIndex = (clampedQueuePage - 1) * QUEUE_PAGE_SIZE;
-    return pendingTickets.slice(startIndex, startIndex + QUEUE_PAGE_SIZE);
-  }, [pendingTickets, clampedQueuePage]);
+  const activeTicket = TICKETS.find((ticket) => ticket.id === activeTicketId) ?? null;
+  const flow = activeTicket ? FLOWS[activeTicket.flowId] : null;
+  const state = activeTicket
+    ? flowStates[activeTicket.id] ?? createInitialFlowState(activeTicket.flowId)
+    : null;
+  const ticketStatus = (ticketId: string): QueueStatus => ticketStatuses[ticketId] ?? 'waiting';
+  const queueItems = TICKETS.map((ticket) => {
+    const status = ticketStatus(ticket.id);
+    const statusLabel = status === 'in-progress' ? 'In progress' : status === 'completed' ? 'Completed' : 'Waiting';
+    return {
+      ...ticket,
+      serviceName: FLOWS[ticket.flowId].service,
+      statusLabel,
+      action: status === 'completed'
+        ? (
+          <Button
+            label="View"
+            aria-label={`View completed service for ${ticket.customer}, ticket ${ticket.id}`}
+            variant="neutral"
+            className="dmv-ticket-action-button"
+            onClick={() => viewCompletedTicket(ticket)}
+          />
+        )
+        : (
+          <Button
+            label={status === 'in-progress' ? 'Resume' : 'Call'}
+            aria-label={`${status === 'in-progress' ? 'Resume' : 'Call'} ${ticket.customer}, ticket ${ticket.id}, ${status === 'in-progress' ? 'at' : 'to'} ${COUNTER}`}
+            variant={status === 'in-progress' ? 'neutral' : 'brand'}
+            className="dmv-ticket-action-button"
+            onClick={() => callTicket(ticket)}
+          />
+        ),
+    };
+  });
+  const waitingCount = TICKETS.filter((ticket) => ticketStatus(ticket.id) === 'waiting').length;
 
-  const activeTicket = useMemo(
-    () => tickets.find((ticket) => ticket.id === selectedTicketId) ?? tickets[0],
-    [tickets, selectedTicketId]
-  );
-
-  const missingDocuments = useMemo(
-    () => requiredDocuments.slice(activeTicket.docsVerified),
-    [activeTicket.docsVerified]
-  );
-
-  const nextRequiredDocument = missingDocuments[0] ?? null;
-
-  const allDocumentsReady = missingDocuments.length === 0;
-  const allCoreChecksConfirmed = identityConfirmed && addressConfirmed && photoConfirmed;
-  const canVerifyDocuments = !['Approved', 'Follow-up scheduled'].includes(activeTicket.status);
-  const canRunCompliance =
-    allDocumentsReady &&
-    allCoreChecksConfirmed &&
-    ['Ready for review', 'Needs verification', 'Documents pending'].includes(activeTicket.status);
-  const canIssueTicket = allDocumentsReady && activeTicket.status === 'Awaiting signature';
-
-  const processProgress = useMemo(() => {
-    const docsStep = activeTicket.docsVerified >= activeTicket.docsRequired ? 100 : Math.round((activeTicket.docsVerified / activeTicket.docsRequired) * 100);
-    const verificationStep = activeTicket.status === 'Needs verification' || activeTicket.status === 'Documents pending' ? 40 : 100;
-    const signatureStep = activeTicket.status === 'Awaiting signature' ? 60 : activeTicket.status === 'Approved' || activeTicket.status === 'Follow-up scheduled' ? 100 : 20;
-    const completionStep = activeTicket.status === 'Approved' || activeTicket.status === 'Follow-up scheduled' ? 100 : 20;
-
-    return [
-      { name: 'Check-in and queue intake', value: 100 },
-      { name: 'Document verification', value: docsStep },
-      { name: 'Identity and compliance review', value: verificationStep },
-      { name: 'Signature and payment finalization', value: signatureStep },
-      { name: 'Issue result and close ticket', value: completionStep },
-    ];
-  }, [activeTicket]);
-
-  const workflowStepStates = useMemo(() => {
-    const showRescheduleStep = !allDocumentsReady || activeTicket.status === 'Follow-up scheduled';
-
-    const stepCompletion = [
-      identityConfirmed && addressConfirmed,
-      allDocumentsReady,
-      activeTicket.status === 'Awaiting signature' || activeTicket.status === 'Approved' || activeTicket.status === 'Follow-up scheduled',
-      activeTicket.status === 'Follow-up scheduled',
-    ];
-
-    const firstIncompleteIndex = stepCompletion.findIndex((isDone) => !isDone);
-
-    return workflowSteps.map((label, index) => ({ label, index }))
-      .filter((step) => showRescheduleStep || step.index !== 3)
-      .map((step) => {
-      const { label, index } = step;
-
-      if (stepCompletion[index]) {
-        return { label, status: 'done' as const, statusLabel: 'Done' };
-      }
-
-      if (index === 1 && stepCompletion[0] && !allDocumentsReady) {
-        return { label, status: 'blocked' as const, statusLabel: 'Missing docs' };
-      }
-
-      if (index === 3 && !allDocumentsReady) {
-        return { label, status: 'current' as const, statusLabel: 'Needs action' };
-      }
-
-      if (firstIncompleteIndex === -1 || index === firstIncompleteIndex) {
-        return { label, status: 'current' as const, statusLabel: 'In progress' };
-      }
-
-      return { label, status: 'pending' as const, statusLabel: 'Pending' };
-    });
-  }, [identityConfirmed, addressConfirmed, allDocumentsReady, activeTicket.status]);
-
-  const statusBadgeTone = useMemo(() => {
-    switch (activeTicket.priority) {
-      case 'High':
-        return 'slds-theme_error';
-      case 'Medium':
-        return 'slds-theme_warning';
-      default:
-        return 'slds-theme_success';
-    }
-  }, [activeTicket.priority]);
-
-  const workflowBadge = useMemo(() => {
-    if (activeTicket.status === 'Approved') {
-      return { label: 'Ticket completed', tone: 'slds-theme_success' };
-    }
-
-    if (activeTicket.status === 'Follow-up scheduled') {
-      return { label: 'Follow-up scheduled', tone: 'slds-theme_warning' };
-    }
-
-    if (!allDocumentsReady) {
-      return { label: 'Missing required documents', tone: 'slds-theme_warning' };
-    }
-
-    if (!allCoreChecksConfirmed) {
-      return { label: 'Complete confirmations', tone: 'slds-theme_warning' };
-    }
-
-    if (canIssueTicket) {
-      return { label: 'Ready for issuance', tone: 'slds-theme_success' };
-    }
-
-    if (canRunCompliance) {
-      return { label: 'Ready for compliance review', tone: 'slds-theme_success' };
-    }
-
-    if (activeTicket.status === 'Awaiting signature') {
-      return { label: 'Awaiting signature', tone: 'slds-theme_warning' };
-    }
-
-    return { label: 'Case review in progress', tone: 'slds-theme_warning' };
-  }, [activeTicket.status, allDocumentsReady, allCoreChecksConfirmed, canIssueTicket, canRunCompliance]);
-
-  // Badge tone based on actual ticket status (not workflow state) for status display in Case history
-  const ticketStatusBadge = useMemo(() => {
-    switch (activeTicket.status) {
-      case 'Approved': return 'slds-theme_success';
-      case 'Follow-up scheduled': return 'slds-theme_success';
-      case 'Awaiting signature': return 'slds-theme_info';
-      case 'Needs verification': return 'slds-theme_warning';
-      case 'Documents pending': return 'slds-theme_warning';
-      default: return '';
-    }
-  }, [activeTicket.status]);
-
-  const logAction = (entry: string) => setActivityLog((prev) => [entry, ...prev].slice(0, 8));
-
-  const updateTicket = (ticketId: string, patch: Partial<TicketRow>, logLine: string) => {
-    setTickets((prev) => prev.map((ticket) => (ticket.id === ticketId ? { ...ticket, ...patch } : ticket)));
-    logAction(logLine);
+  const updateFlowState = (patch: Partial<FlowState>) => {
+    if (!activeTicket || !state) return;
+    setFlowStates((previous) => ({
+      ...previous,
+      [activeTicket.id]: { ...state, ...patch },
+    }));
   };
 
-  const handleOpenQueueTicket = (ticket: TicketRow) => {
-    setSelectedTicketId(ticket.id);
-    setSelectedPriority(ticket.priority);
-    setCaseDecision('');
-    setCaseDecisionNote('');
-    setIdentityConfirmed(false);
-    setAddressConfirmed(false);
-    setPhotoConfirmed(false);
-    logAction(`Switched to ${ticket.id} at ${ticket.counter} (${ticket.customer})`);
-    setIsQueueModalOpen(false);
+  const callTicket = (ticket: Ticket) => {
+    setFlowStates((previous) => ({
+      ...previous,
+      [ticket.id]: previous[ticket.id] ?? createInitialFlowState(ticket.flowId),
+    }));
+    setTicketStatuses((previous) => ({ ...previous, [ticket.id]: 'in-progress' }));
+    setActiveTicketId(ticket.id);
+    setAnnouncement(`${ticket.customer}, ticket ${ticket.id}, called to ${COUNTER}. ${FLOWS[ticket.flowId].name} workflow opened.`);
   };
 
-  const handleOpenQueueModal = () => {
-    const activeIndex = pendingTickets.findIndex((ticket) => ticket.id === activeTicket.id);
-    const initialPage = activeIndex >= 0 ? Math.floor(activeIndex / QUEUE_PAGE_SIZE) + 1 : 1;
-    setQueuePage(initialPage);
-    setIsQueueModalOpen(true);
+  const viewCompletedTicket = (ticket: Ticket) => {
+    setActiveTicketId(ticket.id);
+    setAnnouncement(`Viewing completed service for ${ticket.customer}, ticket ${ticket.id}.`);
   };
 
-  const handleVerifyDocuments = () => {
-    const nextCount = Math.min(activeTicket.docsVerified + 1, activeTicket.docsRequired);
-    const nextStatus = nextCount === activeTicket.docsRequired ? 'Ready for review' : activeTicket.status;
-    updateTicket(activeTicket.id, {
-      docsVerified: nextCount,
-      status: nextStatus,
-      nextAction: nextCount === activeTicket.docsRequired ? 'Run compliance review and route to signature' : activeTicket.nextAction,
-      lastUpdated: 'just now',
-      history: [`Document ${nextCount}/${activeTicket.docsRequired} verified`, ...activeTicket.history].slice(0, 5),
-    }, `${activeTicket.id}: document verification updated (${nextCount}/${activeTicket.docsRequired})`);
+  const previewUploadedFile = (documentName: string, file: File) => {
+    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    const url = URL.createObjectURL(file);
+    previewUrlRef.current = url;
+    setPreviewFile({ documentName, file, url });
   };
 
-  const handleComplianceCheck = () => {
-    if (!allDocumentsReady || !allCoreChecksConfirmed) {
-      logAction(`${activeTicket.id}: compliance blocked (complete confirmations and required documents first)`);
-      return;
-    }
-    updateTicket(activeTicket.id, {
-      status: 'Awaiting signature',
-      nextAction: 'Collect supervisor signature and finalize payment',
-      lastUpdated: 'just now',
-      history: ['Compliance check passed', ...activeTicket.history].slice(0, 5),
-    }, `${activeTicket.id}: compliance review completed`);
+  const closeFilePreview = () => {
+    if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current);
+    previewUrlRef.current = null;
+    setPreviewFile(null);
   };
 
-  const handleEverythingChecksOut = () => {
-    handleComplianceCheck();
+  const updateCheck = (key: 'identityChecks' | 'examChecks', index: number, checked: boolean) => {
+    if (!state) return;
+    const values = [...state[key]];
+    values[index] = checked;
+    updateFlowState({ [key]: values });
   };
 
-  const handleCloseTicket = () => {
-    if (!allDocumentsReady || activeTicket.status !== 'Awaiting signature') {
-      logAction(`${activeTicket.id}: issuance blocked (run compliance and collect signature first)`);
-      return;
-    }
-    updateTicket(activeTicket.id, {
-      status: 'Approved',
-      nextAction: 'Issue receipt and archive ticket',
-      lastUpdated: 'just now',
-      history: ['Credential issued and ticket closed', ...activeTicket.history].slice(0, 5),
-    }, `${activeTicket.id}: ticket closed as approved`);
+  const uploadAndVerifyDocument = (index: number, file: File) => {
+    if (!state || !flow) return;
+    const documents = state.documents.map((document, documentIndex) => (
+      documentIndex === index
+        ? { status: 'verified' as const, fileName: file.name, file }
+        : document
+    ));
+    const allVerified = documents.every((document) => document.status === 'verified');
+    updateFlowState({ documents, ...(allVerified ? { step: 3 } : {}) });
+    setAnnouncement(allVerified
+      ? 'All required documents uploaded and verified. Moving to screening.'
+      : `${flow.documents[index]} uploaded and verified.`);
   };
 
-  const handleEscalate = () => {
-    updateTicket(activeTicket.id, {
-      status: 'Needs verification',
-      nextAction: 'Supervisor escalation required',
-      lastUpdated: 'just now',
-      exceptionState: 'Sent to supervisor review',
-      history: ['Escalated to supervisor', ...activeTicket.history].slice(0, 5),
-    }, `${activeTicket.id}: escalated for supervisor review`);
+  const verifiedDocuments = state?.documents.filter((document) => document.status === 'verified').length ?? 0;
+  const allDocumentsVerified = Boolean(state && state.documents.every((document) => document.status === 'verified'));
+  const identityComplete = Boolean(state && state.identityChecks.every(Boolean));
+  const screeningComplete = Boolean(state && state.examChecks.every(Boolean));
+  const steps = STEP_TITLES.map((title, index) => ({
+    title,
+    number: index + 1,
+    status: state?.issued || (state && index + 1 < state.step)
+      ? 'complete'
+      : state && index + 1 === state.step
+        ? 'current'
+        : 'upcoming',
+  }));
+  const progressValue = state ? state.issued ? 100 : Math.round(((state.step - 1) / STEP_TITLES.length) * 100) : 0;
+  const currentStatus = !state
+    ? 'Waiting'
+    : state.issued
+      ? 'License issued'
+      : state.step === 1
+        ? 'Identity review'
+        : state.step === 2
+          ? allDocumentsVerified ? 'Documents verified' : 'Documents needed'
+          : state.step === 3
+            ? 'Screening in progress'
+            : state.paymentRecorded ? 'Ready to issue' : 'Payment due';
+
+  const continueToStep = (nextStep: number) => {
+    updateFlowState({ step: nextStep });
+    setAnnouncement(`Step ${nextStep} of ${STEP_TITLES.length}: ${STEP_TITLES[nextStep - 1]}.`);
   };
 
-  const handleSubmitReview = () => {
-    updateTicket(activeTicket.id, {
-      status: selectedPriority === 'High' ? 'Needs verification' : activeTicket.status,
-      lastUpdated: 'just now',
-      history: [`Supervisor review submitted (${selectedPriority} priority)`, ...activeTicket.history].slice(0, 5),
-    }, `${activeTicket.id}: review submitted (${selectedPriority} priority)`);
-    setIsModalOpen(false);
+  const recordPayment = () => {
+    updateFlowState({ paymentRecorded: true });
+    setAnnouncement(`Payment recorded by ${state?.paymentMethod === 'card' ? 'card' : 'cash'}. Ready to issue the license.`);
   };
 
-  const handleRescheduleCase = () => {
-    const scheduleLabel = rescheduleDate.trim() ? rescheduleDate.trim() : 'next available slot';
-    const noteLabel = rescheduleNote.trim() ? rescheduleNote.trim() : 'Missing documents';
-    updateTicket(activeTicket.id, {
-      status: 'Follow-up scheduled',
-      nextAction: 'Return with missing documents and continue case review',
-      lastUpdated: 'just now',
-      exceptionState: `Rescheduled: ${scheduleLabel}`,
-      history: [`Rescheduled to ${scheduleLabel} (${noteLabel})`, ...activeTicket.history].slice(0, 5),
-    }, `${activeTicket.id}: case rescheduled (${scheduleLabel})`);
-    setCaseDecision('');
-    setCaseDecisionNote('');
-    setIsRescheduleModalOpen(false);
+  const issueLicense = () => {
+    if (!activeTicket) return;
+    updateFlowState({ issued: true });
+    setTicketStatuses((previous) => ({ ...previous, [activeTicket.id]: 'completed' }));
+    setAnnouncement(`Ticket ${activeTicket.id} complete. License issued.`);
   };
 
-  const handleConfirmDecision = () => {
-    if (!caseDecision) {
-      logAction(`${activeTicket.id}: select a decision before confirming`);
-      return;
-    }
-
-    if (caseDecision === 'reschedule') {
-      setIsRescheduleModalOpen(true);
-      return;
-    }
-
-    if (caseDecision === 'escalate') {
-      handleEscalate();
-      return;
-    }
-
-    if (caseDecision === 'hold') {
-      const note = caseDecisionNote.trim() || 'No interaction possible at counter';
-      updateTicket(activeTicket.id, {
-        status: 'Needs verification',
-        nextAction: 'Case flagged for manual follow-up',
-        lastUpdated: 'just now',
-        exceptionState: 'Held for follow-up',
-        history: [`Case flagged: ${note}`, ...activeTicket.history].slice(0, 5),
-      }, `${activeTicket.id}: flagged as no-action case`);
-      setCaseDecision('');
-      setCaseDecisionNote('');
-    }
+  const returnToQueue = () => {
+    setActiveTicketId(null);
+    setAnnouncement(`Returned to the ${COUNTER.toLowerCase()} ticket queue.`);
   };
 
   return (
-    <IconSettings iconPath="/icons">
-      <>
-      <a
-        href="#dmv-main-content"
-        className="slds-assistive-text slds-assistive-text_focus"
-        style={{ position: 'fixed', top: 8, left: 8, zIndex: 9999, background: '#0176d3', color: '#fff', padding: '8px 16px', borderRadius: '4px', textDecoration: 'none', fontWeight: 600 }}
-      >
-        Skip to main content
-      </a>
-      <div
-        id="dmv-demo-topbar"
-        role="navigation"
-        aria-label="Portfolio navigation"
-        className="dmv-demo-topbar fixed top-0 left-0 right-0 z-[100] h-14 sm:h-16 px-4 sm:px-6 md:px-14 flex items-center justify-between"
-      >
-        <Link href="/" className="slds-text-title_caps slds-text-link_reset">
-          Akhil Vanga
-        </Link>
-        <Link href="/work/design-system-migration" className="slds-text-body_small slds-text-link_reset">
-          Back to case study
-        </Link>
+    <div className="dmv-demo-root slds-theme_default">
+      <a href="#dmv-main-content" className="dmv-skip-link">Skip to main content</a>
+      <header className="dmv-app-header">
+        <div className="dmv-utility-bar">
+          <Link
+            href="/work/design-system-migration/demo"
+            className="dmv-brand"
+            aria-label="Service queue home"
+            onClick={returnToQueue}
+          >
+            <span className="dmv-brand-mark" aria-hidden="true">D</span>
+            <span>State Services</span>
+          </Link>
+          <div className="dmv-utility-context">
+            <span>Driver Licensing</span>
+            <span className="dmv-context-divider" aria-hidden="true">/</span>
+              <span>Staff workspace</span>
+          </div>
+          <Link href="/work/design-system-migration" className="dmv-back-link">Back to case study</Link>
+        </div>
+        <nav className="dmv-app-nav" aria-label="Workspace navigation">
+          <span className="dmv-nav-current" aria-current="page">Service desk</span>
+          <span className="dmv-clerk-name"><span className="dmv-avatar" aria-hidden="true">JA</span> {CLERK}</span>
+        </nav>
+      </header>
+
+      <div id="dmv-main-content" className="dmv-demo-shell" tabIndex={-1}>
+        <nav aria-label="Breadcrumbs" className="dmv-breadcrumbs">
+          <Link href="/">Home</Link><span aria-hidden="true">/</span><span>Driver licensing</span><span aria-hidden="true">/</span>
+          <span aria-current="page">{activeTicket ? 'Customer service' : 'Ticket queue'}</span>
+        </nav>
+
+        <div className="dmv-page-heading">
+          <div>
+            <h1>{activeTicket ? ticketStatus(activeTicket.id) === 'completed' ? 'Completed service' : 'License service workflow' : 'Service queue'}</h1>
+            <p className="dmv-page-description">
+              {activeTicket
+                ? ticketStatus(activeTicket.id) === 'completed'
+                  ? 'Review this completed service record.'
+                  : 'Use the steps below to complete this service.'
+                : 'Call a waiting customer or resume an in-progress case.'}
+            </p>
+          </div>
+          <div className="dmv-page-heading-actions">
+            <div className="dmv-page-counter" aria-label={`Service counter ${COUNTER_NUMBER}`}>
+              <span>Service counter</span>
+              <strong>{COUNTER_NUMBER}</strong>
+            </div>
+            {activeTicket && (
+              <Button label="Back to ticket queue" variant="neutral" onClick={returnToQueue} />
+            )}
+          </div>
+        </div>
+
+        {!activeTicket ? (
+          <>
+            <Card
+              heading="Customer tickets"
+              className="dmv-card dmv-queue-card"
+              headerActions={(
+                <span className="dmv-queue-count" aria-live="polite">
+                  {waitingCount === 1 ? '1 customer waiting' : `${waitingCount} customers waiting`}
+                </span>
+              )}
+            >
+              <div className="dmv-table-scroll" role="region" aria-label="Ticket queue table" tabIndex={0}>
+                <DataTable
+                  id="dmv-ticket-queue"
+                  className="dmv-ticket-table"
+                  items={queueItems}
+                  fixedLayout
+                  stackedHorizontal
+                >
+                  <DataTableColumn key="ticket" label="Ticket" property="id" primaryColumn />
+                  <DataTableColumn key="customer" label="Customer" property="customer" />
+                  <DataTableColumn key="service" label="Service requested" property="serviceName" />
+                  <DataTableColumn key="arrival" label="Checked in" property="arrival" />
+                  <DataTableColumn key="wait" label="Wait" property="wait" />
+                  <DataTableColumn key="status" label="Status" property="statusLabel" />
+                  <DataTableColumn key="action" label="Action" property="action" />
+                </DataTable>
+              </div>
+            </Card>
+          </>
+        ) : (
+          <>
+            <section
+              className="dmv-case-banner"
+              aria-label={ticketStatus(activeTicket.id) === 'completed' ? 'Completed service record' : 'Customer currently being served'}
+            >
+              <div className="dmv-now-serving">
+                <span className="dmv-serving-label">{ticketStatus(activeTicket.id) === 'completed' ? 'COMPLETED' : 'NOW SERVING'}</span>
+                <strong>{activeTicket.id}</strong>
+                <span className="dmv-serving-divider" aria-hidden="true" />
+                <span className="dmv-customer-name">{activeTicket.customer}</span>
+              </div>
+              <div className="dmv-case-meta">
+                <span>{flow?.service}</span>
+                <span>{flow?.licenseLabel}: {activeTicket.licenseDetail}</span>
+                <span>Checked in {activeTicket.arrival}</span>
+                <span className={`dmv-status${state?.issued ? ' is-success' : state?.step === 2 && !allDocumentsVerified ? ' is-warning' : ''}`}>
+                  <span className="dmv-status-dot" aria-hidden="true" />{currentStatus}
+                </span>
+              </div>
+            </section>
+
+            <section className="dmv-progress-card" aria-labelledby="progress-heading">
+              <div className="dmv-progress-topline">
+                <div>
+                  <h2 id="progress-heading">Service progress</h2>
+                  <p>{state?.issued ? 'All steps complete' : `Step ${state?.step} of ${STEP_TITLES.length} · ${STEP_TITLES[(state?.step ?? 1) - 1]}`}</p>
+                </div>
+              </div>
+              <div
+                className="dmv-progress-track"
+                role="progressbar"
+                aria-label="License service progress"
+                aria-valuemin={0}
+                aria-valuemax={100}
+                aria-valuenow={progressValue}
+                aria-valuetext={state?.issued ? 'Service complete' : `Step ${state?.step} of ${STEP_TITLES.length}`}
+              >
+                <span style={{ width: `${progressValue}%` }} />
+              </div>
+              <ol className="dmv-step-list" aria-label="Service steps">
+                {steps.map((step) => (
+                  <li key={step.number} className={`dmv-step is-${step.status}`} aria-current={step.status === 'current' ? 'step' : undefined}>
+                    <span className="dmv-step-number" aria-hidden="true">{step.status === 'complete' ? '✓' : step.number}</span>
+                    <span className="dmv-step-text">
+                      <strong>{step.title}</strong>
+                      <span>{step.status === 'complete' ? 'Complete' : step.status === 'current' ? 'Current step' : 'Not started'}</span>
+                    </span>
+                  </li>
+                ))}
+              </ol>
+            </section>
+
+            <div className="dmv-workspace-grid">
+              <section className="dmv-main-column" aria-label="Current service step">
+                {state?.issued ? (
+                  <Card heading={ticketStatus(activeTicket.id) === 'completed' ? 'Completed service record' : 'Service complete'} className="dmv-card">
+                    <div className="dmv-complete-panel" role="status">
+                      <span className="dmv-complete-icon" aria-hidden="true">✓</span>
+                      <div>
+                        <h2>License issued successfully</h2>
+                        <p>{activeTicket.customer}’s {flow?.service.toLowerCase()} is complete.</p>
+                        <p className="dmv-reference">Reference: {activeTicket.id} · Payment: {flow?.fee}</p>
+                      </div>
+                    </div>
+                    {flow && state && (
+                      <section className="dmv-completed-documents" aria-labelledby="completed-documents-heading">
+                        <div className="dmv-completed-documents-heading">
+                          <div>
+                            <h3 id="completed-documents-heading">Uploaded documents</h3>
+                            <p>Review the files and verification status saved with this case.</p>
+                          </div>
+                          <span>{state.documents.filter((document) => document.status === 'verified').length} of {flow.documents.length} verified</span>
+                        </div>
+                        <ul className="dmv-completed-document-list">
+                          {flow.documents.map((document, index) => {
+                            const documentState = state.documents[index];
+                            const uploadedFile = documentState.file;
+                            return (
+                              <li className="dmv-completed-document" key={document}>
+                                <span className="dmv-completed-document-icon" aria-hidden="true">
+                                  {documentState.status === 'verified' ? '✓' : '–'}
+                                </span>
+                                <div className="dmv-document-copy">
+                                  <strong>{document}</strong>
+                                  <span>
+                                    {documentState.fileName
+                                      ? `${documentState.fileName} · ${documentState.status === 'verified' ? 'Verified' : 'Not verified'}`
+                                      : `No file attached · ${documentState.status === 'verified' ? 'Verified' : 'Not verified'}`}
+                                  </span>
+                                </div>
+                                {uploadedFile && (
+                                  <Button
+                                    label="View file"
+                                    aria-label={`View uploaded ${document} file ${uploadedFile.name}`}
+                                    variant="neutral"
+                                    onClick={() => previewUploadedFile(document, uploadedFile)}
+                                  />
+                                )}
+                              </li>
+                            );
+                          })}
+                        </ul>
+                        <p className="dmv-field-help">Demo files stay in memory while this page is open and are not uploaded to a server.</p>
+                      </section>
+                    )}
+                  </Card>
+                ) : (
+                  <Card heading={STEP_ACTIONS[(state?.step ?? 1) - 1]} className="dmv-card">
+                    <div className="dmv-step-content">
+                      <p className="dmv-step-intro">
+                        {state?.step === 1 && 'Match the applicant’s photo and details, then confirm they are eligible for this service.'}
+                        {state?.step === 2 && 'Review each original document, then upload its scan. Uploading records it as verified; adding the final document continues to screening.'}
+                        {state?.step === 3 && 'Complete each required screening and record its result. Follow office policy if a check fails.'}
+                        {state?.step === 4 && 'Confirm the fee with the customer, record the payment method, then issue the license.'}
+                      </p>
+
+                      {state?.step === 1 && flow && (
+                        <fieldset className="dmv-checklist">
+                          <legend>Confirm both items to continue</legend>
+                          {[
+                            'Photo and identity details match the applicant',
+                            activeTicket.flowId === 'renewal' ? 'Existing license is expired and eligible for renewal' : 'Applicant meets the minimum age requirement',
+                          ].map((label, index) => (
+                            <label className="dmv-check-row" key={label}>
+                              <input
+                                type="checkbox"
+                                checked={state.identityChecks[index]}
+                                onChange={(event) => updateCheck('identityChecks', index, event.target.checked)}
+                              />
+                              <span>{label}</span>
+                            </label>
+                          ))}
+                        </fieldset>
+                      )}
+
+                      {state?.step === 2 && flow && (
+                        <>
+                          <fieldset className="dmv-checklist">
+                            <legend>Required documents <span>{verifiedDocuments} of {flow.documents.length} verified</span></legend>
+                            {flow.documents.map((document, index) => {
+                              const documentState = state.documents[index];
+                              return (
+                                <div className={`dmv-document-row is-${documentState.status}`} key={document}>
+                                  <span className={`dmv-document-icon is-${documentState.status}`} aria-hidden="true">
+                                    {documentState.status === 'verified' ? '✓' : '↑'}
+                                  </span>
+                                  <div className="dmv-document-copy">
+                                    <strong>{document}</strong>
+                                    <span>
+                                      {documentState.status === 'verified'
+                                        ? `Uploaded and verified${documentState.fileName ? ` · ${documentState.fileName}` : ''}`
+                                        : 'Not uploaded'}
+                                    </span>
+                                  </div>
+                                  <div className="dmv-document-action">
+                                    {documentState.status === 'needed' && (
+                                      <label className="dmv-upload-button">
+                                        Upload scan
+                                        <input
+                                          type="file"
+                                          aria-label={`Upload ${document}`}
+                                          accept=".pdf,.jpg,.jpeg,.png"
+                                          onChange={(event) => {
+                                            const file = event.target.files?.[0];
+                                            if (file) {
+                                              uploadAndVerifyDocument(index, file);
+                                            }
+                                          }}
+                                        />
+                                      </label>
+                                    )}
+                                    {documentState.status === 'verified' && <span className="dmv-doc-status is-verified">Verified</span>}
+                                  </div>
+                                </div>
+                              );
+                            })}
+                          </fieldset>
+                          <p className="dmv-field-help">Demo upload only. Selected file names stay in this browser and are not submitted to a server.</p>
+                        </>
+                      )}
+
+                      {state?.step === 3 && flow && (
+                        <fieldset className="dmv-checklist">
+                          <legend>Record screening results</legend>
+                          {flow.checks.map((check, index) => (
+                            <label className="dmv-check-row" key={check}>
+                              <input
+                                type="checkbox"
+                                checked={state.examChecks[index]}
+                                onChange={(event) => updateCheck('examChecks', index, event.target.checked)}
+                              />
+                              <span>{check}</span>
+                            </label>
+                          ))}
+                          <p className="dmv-field-help">Follow local policy for any failed or inconclusive result. Do not continue until required checks are complete.</p>
+                        </fieldset>
+                      )}
+
+                      {state?.step === 4 && flow && (
+                        <div className="dmv-payment-content">
+                          <div className="dmv-fee-summary">
+                            <span>License service fee</span>
+                            <strong>{flow.fee}</strong>
+                          </div>
+                          {!state.paymentRecorded ? (
+                            <fieldset className="dmv-checklist dmv-payment-options">
+                              <legend>Choose payment method</legend>
+                              {(['card', 'cash'] as const).map((method) => (
+                                <label className="dmv-check-row" key={method}>
+                                  <input
+                                    type="radio"
+                                    name={`payment-${activeTicket.id}`}
+                                    value={method}
+                                    checked={state.paymentMethod === method}
+                                    onChange={() => updateFlowState({ paymentMethod: method })}
+                                  />
+                                  <span>{method === 'card' ? 'Card' : 'Cash'}</span>
+                                </label>
+                              ))}
+                              <p className="dmv-field-help">Demo only: this records a payment choice and does not process a real payment.</p>
+                            </fieldset>
+                          ) : (
+                            <div className="dmv-inline-guidance is-success" role="status">
+                              <span className="dmv-guidance-icon" aria-hidden="true">✓</span>
+                              <p>Payment recorded by {state.paymentMethod === 'card' ? 'card' : 'cash'}. You can now issue the license.</p>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      <div className="dmv-card-actions">
+                        {state && state.step > 1 && <Button label="Back" variant="neutral" onClick={() => continueToStep(state.step - 1)} />}
+                        {state?.step === 1 && (
+                          <Button label="Continue to documents" variant="brand" disabled={!identityComplete} onClick={() => continueToStep(2)} />
+                        )}
+                        {state?.step === 2 && (
+                          <Button label="Continue to screening" variant="brand" disabled={!allDocumentsVerified} onClick={() => continueToStep(3)} />
+                        )}
+                        {state?.step === 3 && (
+                          <Button label="Continue to payment" variant="brand" disabled={!screeningComplete} onClick={() => continueToStep(4)} />
+                        )}
+                        {state?.step === 4 && !state.paymentRecorded && (
+                          <Button label="Record payment" variant="brand" disabled={!state.paymentMethod} onClick={recordPayment} />
+                        )}
+                        {state?.step === 4 && state.paymentRecorded && (
+                          <Button label="Issue license" variant="brand" onClick={issueLicense} />
+                        )}
+                      </div>
+                    </div>
+                  </Card>
+                )}
+
+              </section>
+            </div>
+          </>
+        )}
+        <p className="dmv-announcement" role="status" aria-live="polite" aria-atomic="true">{announcement}</p>
       </div>
+      <dialog
+        ref={previewDialogRef}
+        className="dmv-file-preview-dialog"
+        aria-labelledby="dmv-file-preview-heading"
+        onCancel={(event) => {
+          event.preventDefault();
+          closeFilePreview();
+        }}
+      >
+        {previewFile && (
+          <>
+            <div className="dmv-file-preview-header">
+              <div>
+                <h2 id="dmv-file-preview-heading">{previewFile.documentName}</h2>
+                <p>{previewFile.file.name}</p>
+              </div>
+              <div className="dmv-file-preview-actions">
+                <a className="slds-button slds-button_neutral" href={previewFile.url} download={previewFile.file.name}>Download</a>
+                <Button label="Close preview" variant="neutral" onClick={closeFilePreview} />
+              </div>
+            </div>
+            <div className="dmv-file-preview-content">
+              {previewFile.file.type === 'application/pdf' || /\.pdf$/i.test(previewFile.file.name)
+                ? <iframe src={previewFile.url} title={`Preview of ${previewFile.documentName}`} />
+                : previewFile.file.type.startsWith('image/') || /\.(jpe?g|png)$/i.test(previewFile.file.name)
+                  ? <iframe src={previewFile.url} title={`Preview of ${previewFile.documentName}`} />
+                  : <p>Preview is not available for this file type. Download the file to review it.</p>}
+            </div>
+          </>
+        )}
+      </dialog>
+
       <style jsx global>{`
         .dmv-demo-root {
-          background: var(--slds-g-color-neutral-base-100, #ffffff);
-          color: var(--slds-g-color-neutral-base-10, #181818);
-          font-family: 'Salesforce Sans', Arial, sans-serif;
-          font-size: 1rem;
-          line-height: 1.65;
+          --dmv-navy: #032d60;
+          --dmv-brand: #0b5cab;
+          --dmv-brand-dark: #014486;
+          --dmv-ink: #181818;
+          --dmv-muted: #444;
+          --dmv-canvas: #f3f3f3;
           min-height: 100vh;
-          padding-top: 72px;
-        }
-
-        .dmv-demo-root a:focus-visible,
-        .dmv-demo-root button:focus-visible,
-        .dmv-demo-root input:focus-visible,
-        .dmv-demo-root textarea:focus-visible,
-        .dmv-demo-root [role="button"]:focus-visible {
-          outline: 3px solid #0b5cab !important;
-          outline-offset: 2px;
-          box-shadow: 0 0 0 2px #ffffff, 0 0 0 5px #0b5cab !important;
-        }
-
-        /* Disabled buttons: slightly darker grey, still clearly disabled but readable */
-        .dmv-demo-root .slds-button:disabled,
-        .dmv-demo-root .slds-button[disabled] {
-          color: #a8a8a8 !important;
-          border-color: #d8d8d8 !important;
-        }
-
-        /* 44px min height satisfies WCAG 2.5.5 touch target + AA contrast overrides */
-        .dmv-demo-root .slds-button {
-          font-size: 0.9375rem !important;
-          padding: 0 1.25rem !important;
-          min-height: 2.75rem !important;
-          line-height: 2.75rem !important;
-        }
-
-        .dmv-demo-root .slds-button_brand {
-          background-color: #0b5cab !important;
-          border-color: #0b5cab !important;
-          color: #ffffff !important;
-        }
-
-        .dmv-demo-root .slds-button_brand:hover {
-          background-color: #014486 !important;
-          border-color: #014486 !important;
-        }
-
-        /* neutral button: SLDS #0176d3 is 4.41:1 — darken to pass AA */
-        .dmv-demo-root .slds-button_neutral {
-          color: #0b5cab !important;
-          border-color: #5c5c5c !important;
-        }
-        .dmv-demo-root .slds-text-color_weak {
-          color: #5c5c5c !important;
-        }
-
-        /* Modals render in a React portal outside dmv-demo-root — replicate all overrides */
-        .slds-modal__container,
-        .slds-modal__container * {
-          font-family: 'Salesforce Sans', Arial, sans-serif !important;
-        }
-
-        .slds-modal__header h1,
-        .slds-modal__header h2 {
-          font-size: 1.125rem !important;
-          font-weight: 700 !important;
-        }
-
-        .slds-modal__content p,
-        .slds-modal__content li {
-          font-size: 1rem !important;
-          line-height: 1.65 !important;
-        }
-
-        .slds-modal__content td,
-        .slds-modal__content th {
-          font-size: 1rem !important;
-          font-family: 'Salesforce Sans', Arial, sans-serif !important;
-        }
-
-        .slds-modal .slds-text-body_small {
-          font-size: 0.9375rem !important;
-          line-height: 1.5 !important;
-        }
-
-        .slds-modal .slds-text-color_weak {
-          color: #5c5c5c !important;
-        }
-
-        .slds-modal .slds-form-element__label {
-          font-size: 1rem !important;
-          line-height: 1.65 !important;
-        }
-
-        .slds-modal .slds-button {
-          font-size: 0.9375rem !important;
-          min-height: 2.75rem !important;
-          line-height: 2.75rem !important;
-        }
-
-        .slds-modal .slds-button_brand {
-          background-color: #0b5cab !important;
-          border-color: #0b5cab !important;
-          color: #ffffff !important;
-        }
-
-        .slds-modal .slds-button_brand:hover {
-          background-color: #014486 !important;
-          border-color: #014486 !important;
-        }
-
-        .slds-modal .slds-button_neutral {
-          color: #0b5cab !important;
-          border-color: #5c5c5c !important;
-        }
-
-        .slds-modal .slds-button:disabled,
-        .slds-modal .slds-button[disabled] {
-          color: #a8a8a8 !important;
-          border-color: #d8d8d8 !important;
-        }
-
-        /* WCAG 1.4.11: form control borders must be 3:1 against adjacent bg */
-        .dmv-demo-root .slds-checkbox_faux,
-        .dmv-demo-root .slds-radio_faux {
-          border-color: #5c5c5c !important;
-        }
-
-        .dmv-demo-root .slds-input,
-        .dmv-demo-root .slds-textarea {
-          border-color: #5c5c5c !important;
-        }
-
-        .slds-modal .slds-checkbox_faux,
-        .slds-modal .slds-radio_faux {
-          border-color: #5c5c5c !important;
-        }
-
-        .slds-modal .slds-input,
-        .slds-modal .slds-textarea {
-          border-color: #5c5c5c !important;
-        }
-
-        .slds-modal a:focus-visible,
-        .slds-modal button:focus-visible,
-        .slds-modal input:focus-visible,
-        .slds-modal textarea:focus-visible {
-          outline: 3px solid #0b5cab !important;
-          outline-offset: 2px;
-          box-shadow: 0 0 0 2px #ffffff, 0 0 0 5px #0b5cab !important;
-        }
-
-        /* Tighten card header→body gap: SLDS stacks body margin + content top padding */
-        .dmv-demo-root .slds-card__header {
-          padding-top: 0.5rem !important;
-          padding-bottom: 0 !important;
-        }
-
-        .dmv-demo-root .slds-card__body {
-          margin-top: 0 !important;
-          margin-bottom: 0 !important;
-        }
-
-        .dmv-demo-root .slds-card__body .slds-p-around_medium {
-          padding-top: 6px !important;
-          padding-bottom: 10px !important;
-        }
-
-        /* Force Salesforce Sans everywhere in the demo - prevent Poppins bleeding in */
-        .dmv-demo-root *,
-        .dmv-demo-root .slds-card,
-        .dmv-demo-root .slds-card *,
-        .dmv-demo-root .slds-form-element,
-        .dmv-demo-root .slds-form-element * {
-          font-family: 'Salesforce Sans', Arial, sans-serif !important;
-        }
-
-        /* Normalize base paragraph text inside cards */
-        .dmv-demo-root .slds-p-around_medium p:not(.slds-text-color_error):not(.slds-text-color_weak),
-        .dmv-demo-root .foundation-tile p:not(.slds-text-color_error):not(.slds-text-color_weak) {
-          font-size: 1rem;
-          line-height: 1.55;
-          color: var(--slds-g-color-neutral-base-10, #181818);
-        }
-
-        /* Consistent weak/secondary text */
-        .dmv-demo-root .slds-text-color_weak {
-          color: #5c5c5c !important;
-          font-size: 0.9375rem;
-        }
-
-        /* Caps labels — less aggressive, more readable */
-        .dmv-demo-root .slds-text-title_caps {
-          font-size: 0.75rem !important;
-          letter-spacing: 0.06em !important;
-          font-weight: 600 !important;
-          color: #5c5c5c !important;
-          text-transform: uppercase;
-          line-height: 1.4;
-        }
-
-        /* Tile primary values — consistent size, not overblown */
-        .dmv-demo-root .foundation-tile .slds-text-heading_small {
-          font-size: 1.125rem !important;
-          font-weight: 600 !important;
-          line-height: 1.3 !important;
-          color: var(--slds-g-color-neutral-base-10, #181818) !important;
-        }
-
-        /* Card headings — consistent with SLDS but grounded */
-        .dmv-demo-root .slds-card__header h2 {
-          font-size: 1rem !important;
-          font-weight: 700 !important;
-          letter-spacing: 0 !important;
-        }
-
-        /* Body small — consistent secondary text */
-        .dmv-demo-root .slds-text-body_small {
-          font-size: 0.9375rem !important;
-          line-height: 1.5 !important;
-        }
-
-        /* Checkbox and radio labels — match body text */
-        .dmv-demo-root .slds-form-element__label {
-          font-size: 1rem !important;
-          line-height: 1.55 !important;
-          color: var(--slds-g-color-neutral-base-10, #181818) !important;
-        }
-
-        /* Breadcrumb text */
-        .dmv-demo-root .slds-breadcrumb {
-          font-size: 0.8125rem;
-        }
-
-        .dmv-demo-shell {
-          max-width: 1728px;
-          margin: 0 auto;
-          padding: 24px 32px 40px;
-        }
-
-        .dmv-layout {
-          display: grid;
-          grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
-          gap: 16px;
-          align-items: start;
-        }
-
-        .dmv-workflow-grid {
-          display: grid;
-          grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr);
-          gap: 16px;
-          align-items: start;
-        }
-
-        .slds-page-header__name-title h1 > span:first-child {
-          display: block;
-          margin-bottom: 4px;
-        }
-
-        .dmv-demo-topbar {
-          background: rgba(255, 255, 255, 0.97);
-          border-bottom: 1px solid var(--slds-g-color-border-base-1, #d8dde6);
-          backdrop-filter: blur(20px);
-        }
-
-        .queue-modal__container {
-          width: min(92vw, 1120px) !important;
-          max-width: 1120px !important;
-          min-width: min(92vw, 720px) !important;
-        }
-
-        .queue-modal__content {
-          max-height: min(70vh, 760px);
-          overflow: hidden;
-        }
-
-        .queue-modal__table-shell {
-          overflow-x: auto;
-        }
-
-        .queue-modal__table-shell .slds-table_header-fixed_container,
-        .queue-modal__table-shell .slds-table_header-fixed_scroller {
-          height: min(52vh, 560px) !important;
-        }
-
-        .foundation-card {
-          height: 100%;
-        }
-
-        .foundation-card .slds-card__body {
-          margin-top: 0;
-          margin-bottom: 0;
-        }
-
-        .foundation-tile {
-          width: 100%;
-          height: 100%;
-          padding: 16px;
-          border: 1px solid var(--slds-g-color-border-base-1, #c9c9c9);
-          border-radius: 0.5rem;
-          background: linear-gradient(180deg, var(--slds-g-color-neutral-base-95, #f7f9fc) 0%, var(--slds-g-color-neutral-base-100, #ffffff) 100%);
-        }
-
-        .workflow-steps-list {
-          margin-top: 12px;
-          padding-left: 0 !important;
-          list-style: none;
-          counter-reset: workflow-step;
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 8px 12px;
-        }
-
-        .workflow-steps-list li {
-          position: relative;
-          margin: 0;
-          padding: 10px 12px 10px 40px;
-          border: 1px solid var(--slds-g-color-border-base-1, #d8dde6);
-          border-radius: 0.25rem;
-          background: var(--slds-g-color-neutral-base-100, #ffffff);
+          padding-top: 96px;
+          background: var(--dmv-canvas);
+          color: var(--dmv-ink);
+          font-family: 'Salesforce Sans', Arial, sans-serif;
           font-size: 1rem;
           line-height: 1.5;
         }
 
-        .workflow-step-item {
+        .dmv-demo-root *,
+        .dmv-demo-root *::before,
+        .dmv-demo-root *::after { box-sizing: border-box; }
+
+        .dmv-demo-root a:focus-visible,
+        .dmv-demo-root button:focus-visible,
+        .dmv-demo-root input:focus-visible,
+        .dmv-demo-root [tabindex]:focus-visible {
+          outline: 3px solid #0b5cab !important;
+          outline-offset: 3px;
+          box-shadow: 0 0 0 2px #fff !important;
+        }
+
+        .dmv-skip-link {
+          position: fixed;
+          z-index: 1000;
+          top: 8px;
+          left: 8px;
+          transform: translateY(-160%);
+          padding: 10px 14px;
+          border-radius: 4px;
+          background: #fff;
+          color: var(--dmv-navy);
+          font-weight: 700;
+        }
+        .dmv-skip-link:focus { transform: translateY(0); }
+
+        .dmv-app-header {
+          position: fixed;
+          z-index: 100;
+          inset: 0 0 auto;
+          box-shadow: 0 1px 3px rgb(0 0 0 / 18%);
+        }
+        .dmv-utility-bar {
+          min-height: 56px;
+          display: flex;
+          align-items: center;
+          gap: 24px;
+          padding: 0 32px;
+          background: #fff;
+          color: var(--dmv-ink);
+        }
+        .dmv-brand {
+          display: inline-flex;
+          align-items: center;
+          gap: 10px;
+          color: var(--dmv-navy);
+          font-size: 1.125rem;
+          font-weight: 700;
+          text-decoration: none;
+          white-space: nowrap;
+        }
+        .dmv-brand-mark {
+          width: 30px;
+          height: 30px;
+          display: grid;
+          place-items: center;
+          border-radius: 7px;
+          background: #0b5cab;
+          color: #fff;
+          font-size: 1rem;
+        }
+        .dmv-utility-context {
+          display: flex;
+          align-items: center;
+          gap: 10px;
+          color: var(--dmv-muted);
+          font-size: 0.875rem;
+        }
+        .dmv-context-divider { color: #747474; }
+        .dmv-back-link {
+          margin-left: auto;
+          color: var(--dmv-brand-dark);
+          font-size: 0.875rem;
+          font-weight: 600;
+          text-decoration: none;
+        }
+        .dmv-app-nav {
+          min-height: 40px;
+          display: flex;
+          align-items: stretch;
+          gap: 28px;
+          padding: 0 32px;
+          background: var(--dmv-navy);
+          color: #fff;
+          font-size: 0.875rem;
+        }
+        .dmv-nav-current {
+          display: flex;
+          align-items: center;
+          min-height: 40px;
+          color: #fff;
+        }
+        .dmv-nav-current {
+          border-bottom: 3px solid #78b9ff;
+          font-weight: 700;
+        }
+        .dmv-clerk-name {
+          margin-left: auto;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          font-size: 0.8125rem;
+        }
+        .dmv-avatar {
+          display: grid;
+          width: 25px;
+          height: 25px;
+          place-items: center;
+          border-radius: 50%;
+          background: #d8e6fe;
+          color: var(--dmv-navy);
+          font-size: 0.6875rem;
+          font-weight: 700;
+        }
+
+        .dmv-demo-shell {
+          width: min(100%, 1440px);
+          margin: 0 auto;
+          padding: 18px 32px 48px;
+        }
+        .dmv-breadcrumbs {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 9px;
+          margin: 0 0 18px;
+          color: #444;
+          font-size: 0.8125rem;
+        }
+        .dmv-breadcrumbs a {
+          color: var(--dmv-brand-dark);
+          text-decoration: underline;
+          text-underline-offset: 2px;
+        }
+        .dmv-page-heading {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          gap: 24px;
+          margin-bottom: 24px;
+        }
+        .dmv-page-heading-actions {
+          display: flex;
+          align-items: center;
+          gap: 16px;
+        }
+        .dmv-page-counter {
+          display: grid;
+          grid-template-columns: auto auto;
+          align-items: center;
+          column-gap: 10px;
+          padding: 8px 14px;
+          border: 1px solid #b5c5d5;
+          border-radius: 6px;
+          background: #fff;
+          color: var(--dmv-navy);
+        }
+        .dmv-page-counter > span {
+          font-size: 0.75rem;
+          font-weight: 700;
+          letter-spacing: 0.06em;
+          text-transform: uppercase;
+        }
+        .dmv-page-counter > strong {
+          font-size: 1.75rem;
+          font-weight: 700;
+          line-height: 1;
+        }
+        .dmv-page-heading h1 {
+          margin: 0;
+          color: #181818;
+          font-size: clamp(1.75rem, 3vw, 2.25rem);
+          font-weight: 700;
+          line-height: 1.2;
+        }
+        .dmv-page-description {
+          margin-top: 8px;
+          color: #444;
+          font-size: 1rem;
+        }
+        .dmv-demo-root .slds-button {
+          min-height: 44px;
+          font-size: 0.9375rem;
+          font-weight: 600;
+        }
+        .dmv-demo-root .slds-button_brand {
+          border-color: var(--dmv-brand);
+          background: var(--dmv-brand);
+        }
+        .dmv-demo-root .slds-button_brand:not(:disabled):not([disabled]):hover,
+        .dmv-demo-root .slds-button_brand:not(:disabled):not([disabled]):focus {
+          border-color: var(--dmv-brand-dark);
+          background: var(--dmv-brand-dark);
+        }
+        .dmv-demo-root .slds-button:disabled { color: #4e4e4e; }
+        .dmv-demo-root .slds-button_brand:disabled,
+        .dmv-demo-root .slds-button_brand[disabled] {
+          border-color: #c9c9c9;
+          background: #c9c9c9;
+          color: #4e4e4e;
+        }
+
+        .dmv-progress-card,
+        .dmv-case-banner {
+          margin-bottom: 16px;
+          border: 1px solid #d8dde6;
+          border-radius: 8px;
+          background: #fff;
+          box-shadow: 0 1px 2px rgb(24 24 24 / 5%);
+        }
+        .dmv-queue-card { margin-bottom: 16px; }
+        .dmv-queue-count {
+          color: #444;
+          font-size: 0.8125rem;
+          font-weight: 700;
+          white-space: nowrap;
+        }
+        .dmv-table-scroll {
+          overflow-x: auto;
+        }
+        .dmv-ticket-table {
+          width: 100%;
+          margin: 0;
+          font-size: 0.875rem;
+        }
+        .dmv-ticket-table thead th:nth-child(1) { width: 10%; }
+        .dmv-ticket-table thead th:nth-child(2) { width: 17%; }
+        .dmv-ticket-table thead th:nth-child(3) { width: 24%; }
+        .dmv-ticket-table thead th:nth-child(4) { width: 12%; }
+        .dmv-ticket-table thead th:nth-child(5) { width: 10%; }
+        .dmv-ticket-table thead th:nth-child(6) { width: 15%; }
+        .dmv-ticket-table thead th:nth-child(7) { width: 12%; }
+        .dmv-ticket-table thead th .slds-th__action,
+        .dmv-ticket-table tbody th,
+        .dmv-ticket-table tbody td {
+          padding-right: 1rem;
+          padding-left: 1rem;
+        }
+        .dmv-ticket-table thead th:nth-child(7) .slds-th__action {
+          justify-content: center;
+        }
+        .dmv-ticket-table tbody td[data-label="Action"] > .slds-truncate {
+          display: flex;
+          min-height: 44px;
+          align-items: center;
+          justify-content: center;
+        }
+        .dmv-ticket-table .dmv-ticket-action-button {
+          width: 7rem;
+          min-width: 7rem;
+        }
+        @media (max-width: 48em) {
+          .dmv-ticket-table tbody td[data-label="Action"] {
+            text-align: left;
+          }
+          .dmv-ticket-table tbody td[data-label="Action"]::before {
+            float: none;
+            margin-top: 0;
+          }
+          .dmv-ticket-table tbody td[data-label="Action"] > .slds-truncate {
+            width: 100%;
+          }
+        }
+        .dmv-ticket-action-button {
+          width: 7rem;
+          min-width: 7rem;
+          justify-content: center;
+        }
+        .dmv-case-banner {
+          padding: 16px 20px;
+          border-left: 5px solid var(--dmv-brand);
+        }
+        .dmv-now-serving,
+        .dmv-case-meta {
+          display: flex;
+          align-items: center;
+          flex-wrap: wrap;
+          gap: 12px;
+        }
+        .dmv-serving-label {
+          color: #444;
+          font-size: 0.6875rem;
+          font-weight: 700;
+          letter-spacing: 0.07em;
+        }
+        .dmv-now-serving > strong { color: var(--dmv-navy); font-size: 1.375rem; }
+        .dmv-serving-divider { height: 22px; border-left: 1px solid #c9c9c9; }
+        .dmv-customer-name { font-size: 1.125rem; font-weight: 700; }
+        .dmv-case-meta {
+          gap: 8px 18px;
+          margin-top: 8px;
+          color: #444;
+          font-size: 0.875rem;
+        }
+        .dmv-status {
+          display: inline-flex;
+          align-items: center;
+          gap: 7px;
+          padding: 4px 9px;
+          border: 1px solid #aeb8c2;
+          border-radius: 999px;
+          background: #f3f3f3;
+          color: #333;
+          font-weight: 600;
+        }
+        .dmv-status.is-warning {
+          border-color: #8a4b00;
+          background: #fff4e5;
+          color: #5f3900;
+        }
+        .dmv-status.is-success {
+          border-color: #2e844a;
+          background: #e8f6ec;
+          color: #194e31;
+        }
+        .dmv-status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+
+        .dmv-progress-card { padding: 20px 22px 18px; }
+        .dmv-progress-topline {
           display: flex;
           align-items: flex-start;
           justify-content: space-between;
-          gap: 8px;
+          gap: 16px;
         }
-
-        .workflow-step-item .workflow-step-label {
-          flex: 1;
-          min-width: 0;
-        }
-
-        .workflow-step-indicator {
-          flex-shrink: 0;
-          margin-top: 1px;
-          font-size: 0.75rem;
-          font-weight: 700;
-          letter-spacing: 0.04em;
-          text-transform: uppercase;
-          border: 1px solid var(--slds-g-color-border-base-1, #d8dde6);
-          background: #f3f3f3;
+        .dmv-progress-topline h2 {
+          margin: 0;
           color: #181818;
+          font-size: 1.125rem;
+          font-weight: 700;
+          line-height: 1.3;
         }
-
-        .workflow-step-indicator.slds-theme_info {
-          background: #dff1ff;
-          color: #032d60;
-          border-color: #0176d3;
+        .dmv-progress-topline p { margin-top: 4px; color: #444; font-size: 0.9375rem; }
+        .dmv-progress-track {
+          height: 8px;
+          overflow: hidden;
+          margin-top: 16px;
+          border-radius: 999px;
+          background: #e5e5e5;
         }
-
-        .workflow-step-indicator.slds-theme_warning {
-          background: #fef1e9;
-          color: #5f3900;
-          border-color: #a96404;
+        .dmv-progress-track > span {
+          height: 100%;
+          display: block;
+          border-radius: inherit;
+          background: #0b5cab;
+          transition: width 180ms ease;
         }
-
-        .workflow-step-indicator.slds-theme_success {
-          background: #e8f6ec;
-          color: #194e31;
-          border-color: #2e844a;
+        .dmv-step-list {
+          display: grid;
+          grid-template-columns: repeat(4, minmax(0, 1fr));
+          gap: 12px;
+          margin: 18px 0 0;
+          padding: 0;
+          list-style: none;
         }
-
-        .workflow-steps-list li::before {
-          counter-increment: workflow-step;
-          content: counter(workflow-step);
-          position: absolute;
-          left: 10px;
-          top: 10px;
-          width: 20px;
-          height: 20px;
+        .dmv-step { min-width: 0; display: flex; align-items: flex-start; gap: 9px; color: #444; }
+        .dmv-step-number {
+          flex: none;
+          width: 28px;
+          height: 28px;
+          display: grid;
+          place-items: center;
+          border: 1px solid #747474;
           border-radius: 50%;
-          border: 1px solid var(--slds-g-color-border-base-1, #d8dde6);
-          color: #5c5c5c;
-          font-size: 0.75rem;
-          line-height: 18px;
-          text-align: center;
+          background: #fff;
+          color: #333;
+          font-size: 0.8125rem;
           font-weight: 700;
         }
+        .dmv-step.is-current .dmv-step-number { border: 2px solid #0b5cab; color: #032d60; }
+        .dmv-step.is-complete .dmv-step-number { border-color: #2e844a; background: #2e844a; color: #fff; }
+        .dmv-step-text { min-width: 0; display: grid; gap: 2px; }
+        .dmv-step-text strong { color: #333; font-size: 0.8125rem; line-height: 1.35; }
+        .dmv-step.is-current .dmv-step-text strong { color: #032d60; }
+        .dmv-step-text > span { color: #444; font-size: 0.75rem; }
 
-        .workflow-step-done {
-          border-color: var(--slds-g-color-success-base-50, #2e844a);
+        .dmv-workspace-grid {
+          display: block;
         }
-
-        .workflow-step-current {
-          border-color: var(--slds-g-color-brand-base-50, #0176d3);
-          background: var(--slds-g-color-brand-base-95, #eef4ff);
+        .dmv-main-column { display: grid; gap: 16px; min-width: 0; }
+        .dmv-demo-root .dmv-card {
+          overflow: hidden;
+          border: 1px solid #d8dde6;
+          border-radius: 8px;
+          background: #fff;
+          box-shadow: 0 1px 2px rgb(24 24 24 / 5%);
         }
-
-        .workflow-step-blocked {
-          border-color: var(--slds-g-color-warning-base-50, #a96404);
-          background: var(--slds-g-color-warning-base-95, #fef1e9);
+        .dmv-demo-root .dmv-card .slds-card__header {
+          min-height: 54px;
+          align-items: center;
+          margin: 0;
+          padding: 12px 20px;
+          border-bottom: 1px solid #e5e5e5;
+          background: #fff;
         }
-
-        .workflow-step-done::before {
-          border-color: var(--slds-g-color-success-base-50, #2e844a);
-          color: var(--slds-g-color-success-base-50, #2e844a);
-        }
-
-        .workflow-step-current::before {
-          border-color: var(--slds-g-color-brand-base-50, #0176d3);
-          color: var(--slds-g-color-brand-base-50, #0176d3);
-        }
-
-        .workflow-step-blocked::before {
-          border-color: var(--slds-g-color-warning-base-50, #a96404);
-          color: var(--slds-g-color-warning-base-50, #a96404);
-        }
-
-        .workflow-missing-note {
-          margin-top: 12px;
-          padding: 10px 14px;
-          background: var(--slds-g-color-error-base-95, #fff1f1);
-          border: 1px solid var(--slds-g-color-error-base-40, #ba0517);
-          border-radius: 0.25rem;
-          color: var(--slds-g-color-error-base-40, #ba0517) !important;
+        .dmv-demo-root .dmv-card .slds-card__header-title { color: #181818; font-size: 1rem; font-weight: 700; }
+        .dmv-demo-root .dmv-card .slds-card__body { margin: 0; padding: 0; }
+        .dmv-step-content { padding: 20px; }
+        .dmv-step-intro {
+          max-width: 760px;
+          margin-bottom: 18px;
+          color: #333;
           font-size: 1rem;
-          font-weight: 600;
+          line-height: 1.55;
         }
-
-        .dmv-step-header {
-          gap: 0.5rem;
+        .dmv-inline-guidance {
+          display: flex;
+          align-items: flex-start;
+          gap: 11px;
+          margin-bottom: 18px;
+          padding: 12px 14px;
+          border: 1px solid #8e6b00;
+          border-radius: 5px;
+          background: #fff8e6;
+          color: #3e2b00;
         }
-
-        .dmv-primary-actions {
-          gap: 0.5rem;
+        .dmv-inline-guidance.is-success { border-color: #2e844a; background: #e8f6ec; color: #194e31; }
+        .dmv-guidance-icon {
+          flex: none;
+          width: 22px;
+          height: 22px;
+          display: grid;
+          place-items: center;
+          border: 1px solid currentColor;
+          border-radius: 50%;
+          font-size: 0.8125rem;
+          font-weight: 700;
+          line-height: 1;
         }
-
-        .dmv-primary-action-slot {
-          min-height: 32px;
+        .dmv-inline-guidance p { margin: 0; font-size: 0.9375rem; line-height: 1.5; }
+        .dmv-checklist { min-width: 0; margin: 0; padding: 0; border: 0; }
+        .dmv-checklist legend {
+          width: 100%;
+          margin-bottom: 8px;
+          color: #181818;
+          font-size: 0.9375rem;
+          font-weight: 700;
+        }
+        .dmv-checklist legend span { float: right; color: #444; font-size: 0.8125rem; font-weight: 400; }
+        .dmv-check-row {
+          min-height: 56px;
           display: flex;
           align-items: center;
+          gap: 12px;
+          padding: 11px 12px;
+          border: 1px solid #d8dde6;
+          border-bottom: 0;
+          background: #fff;
+          color: #181818;
+          cursor: pointer;
         }
+        .dmv-check-row:first-of-type { border-radius: 5px 5px 0 0; }
+        .dmv-check-row:last-of-type { border-bottom: 1px solid #d8dde6; border-radius: 0 0 5px 5px; }
+        .dmv-check-row:only-of-type { border: 1px solid #d8dde6; border-radius: 5px; }
+        .dmv-check-row:hover { background: #f8fbff; }
+        .dmv-check-row input { flex: none; width: 20px; height: 20px; accent-color: #0b5cab; }
+        .dmv-field-help { margin-top: 10px; color: #444; font-size: 0.8125rem; line-height: 1.45; }
 
-        .case-meta-list {
-          border: 1px solid var(--slds-g-color-border-base-1, #d8dde6);
-          border-radius: 0.375rem;
-          background: var(--slds-g-color-neutral-base-100, #ffffff);
+        .dmv-document-row {
+          min-height: 76px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          padding: 11px 12px;
+          border: 1px solid #d8dde6;
+          border-bottom: 0;
+          background: #fff;
         }
-
-        .case-meta-row {
+        .dmv-document-row:first-of-type { border-radius: 5px 5px 0 0; }
+        .dmv-document-row:last-of-type { border-bottom: 1px solid #d8dde6; border-radius: 0 0 5px 5px; }
+        .dmv-document-icon {
+          flex: none;
+          width: 30px;
+          height: 30px;
           display: grid;
-          grid-template-columns: 136px minmax(0, 1fr);
+          place-items: center;
+          border: 1px solid #8a4b00;
+          border-radius: 50%;
+          background: #fff4e5;
+          color: #5f3900;
+          font-size: 0.9375rem;
+          font-weight: 700;
+        }
+        .dmv-document-icon.is-verified { border-color: #2e844a; background: #e8f6ec; color: #194e31; }
+        .dmv-document-copy { flex: 1; min-width: 0; display: grid; gap: 3px; }
+        .dmv-document-copy strong { color: #181818; font-size: 0.9rem; line-height: 1.35; }
+        .dmv-document-copy > span { overflow-wrap: anywhere; color: #444; font-size: 0.78rem; line-height: 1.35; }
+        .dmv-document-action { flex: none; display: flex; justify-content: flex-end; }
+        .dmv-document-action .slds-button { padding: 0 12px; }
+        .dmv-upload-button {
+          position: relative;
+          display: inline-flex;
+          min-height: 44px;
+          align-items: center;
+          justify-content: center;
+          padding: 0 14px;
+          border: 1px solid #5c5c5c;
+          border-radius: 4px;
+          background: #fff;
+          color: #0b5cab;
+          font-size: 0.875rem;
+          font-weight: 700;
+          cursor: pointer;
+        }
+        .dmv-upload-button:hover { background: #f3f8ff; }
+        .dmv-upload-button:focus-within { outline: 3px solid #0b5cab; outline-offset: 3px; }
+        .dmv-upload-button input {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
+          clip-path: inset(50%);
+          white-space: nowrap;
+        }
+        .dmv-doc-status {
+          flex: none;
+          padding: 4px 8px;
+          border: 1px solid #2e844a;
+          border-radius: 999px;
+          background: #e8f6ec;
+          color: #194e31;
+          font-size: 0.75rem;
+          font-weight: 700;
+        }
+        .dmv-completed-documents {
+          margin: 20px;
+          padding-top: 18px;
+          border-top: 1px solid #e5e5e5;
+        }
+        .dmv-completed-documents-heading {
+          display: flex;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 16px;
+          margin-bottom: 12px;
+        }
+        .dmv-completed-documents-heading h3 {
+          margin: 0;
+          color: #181818;
+          font-size: 1rem;
+          font-weight: 700;
+        }
+        .dmv-completed-documents-heading p { margin-top: 3px; color: #444; font-size: 0.875rem; }
+        .dmv-completed-documents-heading > span {
+          flex: none;
+          color: #194e31;
+          font-size: 0.8125rem;
+          font-weight: 700;
+        }
+        .dmv-completed-document-list { margin: 0; padding: 0; list-style: none; }
+        .dmv-completed-document {
+          min-height: 68px;
+          display: flex;
+          align-items: center;
           gap: 12px;
           padding: 10px 12px;
-          border-bottom: 1px solid var(--slds-g-color-border-base-1, #d8dde6);
-          align-items: start;
-        }
-
-        .case-meta-row:last-child {
+          border: 1px solid #d8dde6;
           border-bottom: 0;
         }
-
-        .case-meta-label {
-          margin: 0;
-          color: #5c5c5c;
-          font-size: 0.75rem;
-          letter-spacing: 0.06em;
-          text-transform: uppercase;
-          line-height: 1.4;
-        }
-
-        .case-meta-value {
-          margin: 0;
-          color: var(--slds-g-color-neutral-base-10, #181818);
-          font-size: 1rem;
-          line-height: 1.4;
-          font-weight: 500;
-        }
-
-        .case-section {
-          margin-top: 16px;
-          padding-top: 16px;
-          border-top: 1px solid var(--slds-g-color-border-base-1, #d8dde6);
-        }
-
-        .case-doc-list {
+        .dmv-completed-document:first-child { border-radius: 5px 5px 0 0; }
+        .dmv-completed-document:last-child { border-bottom: 1px solid #d8dde6; border-radius: 0 0 5px 5px; }
+        .dmv-completed-document-icon {
+          flex: none;
+          width: 28px;
+          height: 28px;
           display: grid;
-          gap: 0;
-          margin-top: 8px;
-          border: 1px solid var(--slds-g-color-border-base-1, #d8dde6);
-          border-radius: 0.25rem;
-          overflow: hidden;
+          place-items: center;
+          border: 1px solid #2e844a;
+          border-radius: 50%;
+          background: #e8f6ec;
+          color: #194e31;
+          font-weight: 700;
         }
-
-        .case-doc-row {
+        .dmv-file-preview-dialog {
+          position: fixed;
+          top: 50vh;
+          left: 50vw;
+          transform: translate(-50%, -50%);
+          width: min(100% - 32px, 1000px);
+          max-width: 1000px;
+          max-height: min(90vh, 900px);
+          margin: 0;
+          padding: 0;
+          overflow: hidden;
+          border: 1px solid #b5c5d5;
+          border-radius: 8px;
+          background: #fff;
+          color: #181818;
+        }
+        .dmv-file-preview-dialog::backdrop { background: rgb(3 45 96 / 55%); }
+        .dmv-file-preview-header {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          gap: 8px;
-          padding: 8px 12px;
-          border-bottom: 1px solid var(--slds-g-color-border-base-1, #d8dde6);
+          gap: 16px;
+          padding: 14px 18px;
+          border-bottom: 1px solid #d8dde6;
         }
-
-        .case-doc-row:last-child {
-          border-bottom: 0;
+        .dmv-file-preview-header h2 { margin: 0; font-size: 1rem; font-weight: 700; }
+        .dmv-file-preview-header p { margin: 3px 0 0; color: #444; font-size: 0.8125rem; overflow-wrap: anywhere; }
+        .dmv-file-preview-actions { display: flex; align-items: center; gap: 8px; }
+        .dmv-file-preview-content {
+          height: min(72vh, 720px);
+          display: grid;
+          place-items: center;
+          overflow: auto;
+          padding: 16px;
+          background: #f3f3f3;
         }
+        .dmv-file-preview-content iframe { width: 100%; height: 100%; border: 0; background: #fff; }
+        .dmv-file-preview-content img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
-        .case-doc-missing {
-          background: var(--slds-g-color-warning-base-95, #fef1e9);
-        }
-
-        .case-doc-chip {
-          display: inline-flex;
-          align-items: center;
-          font-size: 0.75rem;
-          padding: 2px 8px;
-          border-radius: 100px;
-          background: var(--slds-g-color-neutral-base-95, #f3f3f3);
-          border: 1px solid var(--slds-g-color-border-base-1, #d8dde6);
-          color: var(--slds-g-color-neutral-base-30, #3e3e3c);
-          margin-right: 4px;
-          margin-top: 6px;
-        }
-
-        .supervisor-modal__content {
-          padding: 16px !important;
-        }
-
-        .supervisor-modal__footer-wrap {
+        .dmv-card-actions {
           display: flex;
           justify-content: flex-end;
+          flex-wrap: wrap;
+          gap: 10px;
+          margin-top: 22px;
+          padding-top: 16px;
+          border-top: 1px solid #e5e5e5;
+        }
+        .dmv-fee-summary {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          margin-bottom: 20px;
           padding: 16px;
+          border: 1px solid #d8dde6;
+          border-radius: 5px;
+          background: #f8f9fb;
+          color: #333;
         }
-
-        .supervisor-timeline-card .slds-card__body {
-          margin-top: 8px;
-          margin-bottom: 0;
+        .dmv-fee-summary strong { color: #181818; font-size: 1.25rem; }
+        .dmv-payment-options { max-width: 520px; }
+        .dmv-complete-panel { display: flex; gap: 16px; padding: 24px 20px 10px; }
+        .dmv-complete-icon {
+          flex: none;
+          width: 42px;
+          height: 42px;
+          display: grid;
+          place-items: center;
+          border-radius: 50%;
+          background: #2e844a;
+          color: #fff;
+          font-size: 1.25rem;
+          font-weight: 700;
         }
-
-        .supervisor-timeline-list {
-          padding: 0 16px 16px;
-        }
-
-        .supervisor-notify-checkbox .slds-form-element__label {
+        .dmv-complete-panel h2 { margin: 0 0 6px; color: #194e31; font-size: 1.25rem; font-weight: 700; }
+        .dmv-complete-panel p { color: #333; font-size: 0.9375rem; line-height: 1.55; }
+        .dmv-complete-panel .dmv-reference { margin-top: 12px; color: #444; font-weight: 600; }
+        .dmv-complete-panel + .dmv-card-actions { margin: 8px 20px 20px; }
+        .dmv-announcement {
+          position: absolute;
+          width: 1px;
+          height: 1px;
+          overflow: hidden;
+          clip: rect(0, 0, 0, 0);
           white-space: nowrap;
+          clip-path: inset(50%);
         }
 
-        @media (max-width: 768px) {
-          .dmv-demo-root {
-            padding-top: 64px;
+        @media (max-width: 1000px) {
+          .dmv-demo-shell { padding-right: 20px; padding-left: 20px; }
+          .dmv-step-list { gap: 8px; }
+        }
+        @media (max-width: 720px) {
+          .dmv-demo-root { padding-top: 88px; }
+          .dmv-utility-bar { min-height: 50px; gap: 10px; padding: 0 14px; }
+          .dmv-brand { font-size: 1rem; }
+          .dmv-utility-context { display: none; }
+          .dmv-back-link { font-size: 0.8125rem; }
+          .dmv-app-nav { min-height: 38px; gap: 18px; padding: 0 14px; font-size: 0.8125rem; }
+          .dmv-nav-current { min-height: 38px; }
+          .dmv-demo-shell { padding: 14px 14px 32px; }
+          .dmv-page-heading { align-items: flex-start; flex-direction: column; gap: 12px; margin-bottom: 18px; }
+          .dmv-page-heading-actions { width: 100%; justify-content: space-between; }
+          .dmv-page-description { max-width: 570px; }
+          .dmv-ticket-table .slds-truncate { white-space: normal; overflow-wrap: anywhere; }
+          .dmv-case-banner, .dmv-progress-card { padding: 14px; }
+          .dmv-step-list { grid-template-columns: 1fr 1fr; gap: 12px 8px; }
+          .dmv-step-content { padding: 16px; }
+          .dmv-demo-root .dmv-card .slds-card__header { padding: 11px 16px; }
+          .dmv-document-row { flex-wrap: wrap; }
+          .dmv-document-action { margin-left: 42px; }
+          .dmv-completed-document {
+            display: grid;
+            grid-template-columns: 28px minmax(0, 1fr);
+            align-items: start;
+            gap: 8px 10px;
+            padding: 10px 12px;
           }
-
-          .dmv-layout,
-          .dmv-workflow-grid {
-            grid-template-columns: 1fr !important;
+          .dmv-completed-document-icon { grid-row: 1 / span 2; }
+          .dmv-completed-document .dmv-document-copy { grid-column: 2; }
+          .dmv-completed-document > .slds-button {
+            grid-column: 2;
+            justify-self: start;
+            margin: 0;
           }
-
-          .dmv-demo-shell {
-            padding: 16px;
+          .dmv-file-preview-dialog[open] {
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            max-width: none;
+            max-height: none;
+            transform: none;
+            margin: 0;
+            border: 0;
+            border-radius: 0;
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            display: flex;
+            flex-direction: column;
           }
-
-          .slds-breadcrumb {
-            display: none;
+          .dmv-file-preview-header {
+            align-items: stretch;
+            flex-direction: column;
+            gap: 10px;
+            padding: 12px;
           }
-
-          .slds-page-header {
-            padding: 0.75rem;
-          }
-
-          .slds-page-header__row {
+          .dmv-file-preview-actions {
             display: flex;
             flex-wrap: wrap;
-            row-gap: 0.75rem;
+            justify-content: flex-start;
           }
-
-          .slds-page-header__col-title,
-          .slds-page-header__col-meta,
-          .slds-page-header__col-actions {
-            width: 100% !important;
-            min-width: 0 !important;
-            flex: 1 1 100% !important;
+          .dmv-file-preview-actions > * {
+            min-width: 0;
+            width: auto;
+            min-width: 7rem;
+            justify-content: center;
+            padding-right: 6px;
+            padding-left: 6px;
+            white-space: nowrap;
           }
-
-          .slds-page-header__name,
-          .slds-page-header__name-title,
-          .slds-page-header__name-title h1 {
-            min-width: 0 !important;
-            width: 100% !important;
-          }
-
-          .slds-page-header__name-title h1 {
-            display: block !important;
-            line-height: 1.25;
-          }
-
-          .slds-page-header__name-title h1 > span:first-child {
-            display: none !important;
-          }
-
-          .slds-page-header__name-title .slds-page-header__title {
-            display: block !important;
-            width: auto !important;
-            max-width: 100% !important;
-            white-space: normal !important;
-            overflow: visible !important;
-            text-overflow: unset !important;
-            line-height: 1.25;
-          }
-
-          .slds-page-header__col-actions {
-            width: 100%;
-          }
-
-          .slds-page-header__controls,
-          .slds-page-header__control {
-            width: 100% !important;
-            display: block !important;
-          }
-
-          .dmv-header-actions {
-            width: 100%;
-            display: grid !important;
-            grid-template-columns: 1fr;
-            gap: 0.5rem;
-            align-items: stretch;
-            justify-items: stretch;
-          }
-
-          .dmv-header-actions .slds-button {
-            width: 100%;
-          }
-
-          .dmv-header-actions .slds-button + .slds-button {
-            margin-left: 0 !important;
-          }
-
-          .workflow-steps-list {
-            grid-template-columns: 1fr;
-          }
-
-          .workflow-step-item {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-
-          .workflow-step-indicator {
-            margin-top: 0.25rem;
-          }
-
-          .dmv-step-header {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-
-          .dmv-primary-actions {
-            flex-direction: column;
-            align-items: stretch;
-          }
-
-          .dmv-primary-action-slot {
-            width: 100%;
-          }
-
-          .dmv-primary-action-slot .slds-button {
-            width: 100%;
-          }
-
-          .case-meta-row {
-            grid-template-columns: 1fr;
-            gap: 4px;
-          }
-
-          .queue-modal__container {
-            width: 96vw !important;
-            min-width: 96vw !important;
-            max-width: 96vw !important;
-          }
-
-          .queue-modal__content {
-            max-height: 72vh;
-          }
-
-          .queue-modal__table-shell .slds-table_header-fixed_container,
-          .queue-modal__table-shell .slds-table_header-fixed_scroller {
-            height: min(46vh, 420px) !important;
-          }
-
-          .supervisor-notify-checkbox .slds-form-element__label {
-            white-space: normal;
-          }
-
-          .supervisor-modal__content {
-            padding: 8px !important;
-          }
-
-          .supervisor-modal__footer-wrap {
-            padding: 8px;
+          .dmv-file-preview-header > div:first-child { min-width: 0; overflow-wrap: anywhere; }
+          .dmv-file-preview-content {
+            flex: 1;
+            min-height: 0;
+            height: auto;
+            padding: 12px;
           }
         }
-
-        @media (min-width: 769px) and (max-width: 1024px) {
-          .dmv-demo-shell {
-            padding: 24px;
-          }
-
-          .dmv-layout,
-          .dmv-workflow-grid {
-            grid-template-columns: 1fr;
-          }
+        @media (max-width: 420px) {
+          .dmv-demo-root { font-size: 0.9375rem; }
+          .dmv-breadcrumbs { gap: 6px; font-size: 0.75rem; }
+          .dmv-now-serving { gap: 8px; }
+          .dmv-now-serving > strong { font-size: 1.2rem; }
+          .dmv-customer-name { font-size: 1rem; }
+          .dmv-step-list { grid-template-columns: 1fr; }
+          .dmv-card-actions { justify-content: stretch; }
+          .dmv-card-actions .slds-button { flex: 1; }
+          .dmv-checklist legend span { display: block; float: none; margin-top: 2px; }
         }
-
-        @media (min-width: 1025px) and (max-width: 1366px) {
-          .dmv-demo-shell {
-            padding: 24px;
-          }
-
-          .dmv-workflow-grid {
-            grid-template-columns: 1fr;
+        @media (prefers-reduced-motion: reduce) {
+          .dmv-demo-root *, .dmv-demo-root *::before, .dmv-demo-root *::after {
+            scroll-behavior: auto !important;
+            transition-duration: 0.01ms !important;
           }
         }
       `}</style>
-
-      <div id="dmv-main-content" className="dmv-demo-root slds-theme_default" role="main" tabIndex={-1}>
-        <div className="dmv-demo-shell">
-          <Breadcrumb
-            trail={[
-              <Link key="home" href="/">Home</Link>,
-              <Link key="ops" href="/work/design-system-migration/demo">DMV Operations</Link>,
-              <span key="portal" style={{ paddingLeft: '0.5rem' }} aria-current="page">Employee Portal</span>,
-            ]}
-          />
-
-          <PageHeader
-            title="DMV Ticket Processing Console"
-            variant="object-home"
-            label="Case handling workflow"
-            onRenderActions={() => (
-              <PageHeaderControl>
-                <div className="slds-grid slds-grid_vertical-align-center dmv-header-actions" style={{ gap: '0.5rem' }}>
-                  <Button label="Current queue" variant="neutral" onClick={handleOpenQueueModal} />
-                  <Button label="Supervisor notes" variant="brand" onClick={() => setIsModalOpen(true)} />
-                </div>
-              </PageHeaderControl>
-            )}
-          />
-
-          <Card heading={`Now serving ${activeTicket.id}`} icon={<Icon category="standard" name="record" />} className="slds-m-top_medium">
-            <div className="slds-p-around_medium slds-grid slds-wrap slds-gutters_x-small" style={{ alignItems: 'stretch' }}>
-              <div className="slds-col slds-size_1-of-1 slds-medium-size_2-of-12" style={{ display: 'flex' }}>
-                <div className="foundation-tile">
-                  <p className="slds-text-title_caps">Ticket</p>
-                  <p className="slds-text-heading_small slds-m-top_x-small">{activeTicket.id}</p>
-                </div>
-              </div>
-              <div className="slds-col slds-size_1-of-1 slds-medium-size_3-of-12" style={{ display: 'flex' }}>
-                <div className="foundation-tile">
-                  <p className="slds-text-title_caps">Customer</p>
-                  <p className="slds-text-heading_small slds-m-top_x-small">{activeTicket.customer}</p>
-                </div>
-              </div>
-              <div className="slds-col slds-size_1-of-1 slds-medium-size_2-of-12" style={{ display: 'flex' }}>
-                <div className="foundation-tile">
-                  <p className="slds-text-title_caps">Counter</p>
-                  <p className="slds-text-heading_small slds-m-top_x-small">{activeTicket.counter}</p>
-                </div>
-              </div>
-              <div className="slds-col slds-size_1-of-1 slds-medium-size_2-of-12" style={{ display: 'flex' }}>
-                <div className="foundation-tile">
-                  <p className="slds-text-title_caps">Assigned agent</p>
-                  <p className="slds-text-heading_small slds-m-top_x-small">{activeTicket.owner}</p>
-                </div>
-              </div>
-              <div className="slds-col slds-size_1-of-1 slds-medium-size_3-of-12" style={{ display: 'flex' }}>
-                <div className="foundation-tile">
-                  <div className="slds-grid slds-grid_align-spread slds-grid_vertical-align-center">
-                    <p className="slds-text-title_caps">Current status</p>
-                    <span className={`slds-badge ${statusBadgeTone}`}>{activeTicket.priority} priority</span>
-                  </div>
-                  <p className="slds-text-heading_small slds-m-top_x-small">{activeTicket.status}</p>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <div className="slds-m-top_medium dmv-layout">
-            <div>
-              <Card heading="Current transaction" icon={<Icon category="standard" name="service_appointment" />}>
-                <div className="slds-p-around_medium">
-                  <p className="slds-text-title_caps">Next action</p>
-                  <p className="slds-text-heading_small slds-m-top_x-small">{activeTicket.nextAction}</p>
-                  <p className="slds-m-top_medium slds-text-title_caps">Due time</p>
-                  <p className="slds-m-top_x-small slds-text-color_weak">{activeTicket.due} · {activeTicket.reviewMins} min est.</p>
-                  <p className="slds-m-top_x-small slds-text-color_weak">Use Current queue to switch tickets.</p>
-                </div>
-              </Card>
-
-              <Card heading="Live activity" icon={<Icon category="standard" name="task" />} className="slds-m-top_medium">
-                <div className="slds-p-around_medium">
-                  <ul className="slds-has-divider_bottom-space" aria-live="polite" aria-label="Recent activity" aria-atomic="false">
-                    {activityLog.map((entry, index) => (
-                      <li key={`${entry}-${index}`} className="slds-p-vertical_x-small slds-text-body_small">{entry}</li>
-                    ))}
-                  </ul>
-                </div>
-              </Card>
-            </div>
-
-            <div>
-              <Card heading="Case review essentials" icon={<Icon category="standard" name="metrics" />}>
-                <div className="slds-p-around_medium">
-                  <div className="slds-grid slds-gutters_x-small slds-wrap" style={{ alignItems: 'stretch' }}>
-                    <div className="slds-col slds-size_1-of-1 slds-medium-size_4-of-12" style={{ display: 'flex' }}>
-                      <div className="foundation-tile">
-                        <p className="slds-text-title_caps">Visit type</p>
-                        <p className="slds-text-heading_small slds-m-top_x-small">{activeTicket.visitType}</p>
-                        <p className="slds-text-body_small slds-text-color_weak slds-m-top_x-small">{activeTicket.lastVisit}</p>
-                      </div>
-                    </div>
-                    <div className="slds-col slds-size_1-of-1 slds-medium-size_4-of-12" style={{ display: 'flex' }}>
-                      <div className="foundation-tile">
-                        <p className="slds-text-title_caps">Document status</p>
-                        <p className="slds-text-heading_small slds-m-top_x-small">{activeTicket.docsVerified}/{activeTicket.docsRequired} verified</p>
-                        <p className="slds-text-body_small slds-text-color_weak">{allDocumentsReady ? 'All required documents received' : missingDocuments.length === 1 ? '1 required document missing' : `${missingDocuments.length} required documents missing`}</p>
-                      </div>
-                    </div>
-                    <div className="slds-col slds-size_1-of-1 slds-medium-size_4-of-12" style={{ display: 'flex' }}>
-                      <div className="foundation-tile">
-                        <p className="slds-text-title_caps">Workflow state</p>
-                        <p className="slds-text-heading_small slds-m-top_x-small">{workflowBadge.label}</p>
-                        <p className="slds-text-body_small slds-text-color_weak slds-m-top_x-small">Ticket status: {activeTicket.status}</p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-
-              <div className="slds-m-top_medium dmv-workflow-grid">
-                <div>
-                  <Card heading={`Process case · ${activeTicket.id}`} icon={<Icon category="standard" name="record_update" />}>
-                    <div className="slds-p-around_medium">
-                      <div className="foundation-tile">
-                        <p className="slds-text-title_caps">Current case objective</p>
-                        <p className="slds-text-heading_small slds-m-top_x-small">{activeTicket.nextAction}</p>
-                      </div>
-
-                      <div className="foundation-tile slds-m-top_medium">
-                        <div className="slds-grid slds-grid_align-spread slds-grid_vertical-align-center dmv-step-header">
-                          <p className="slds-text-title_caps">Step by step</p>
-                        </div>
-                        <ol className="workflow-steps-list">
-                          {workflowStepStates.map((step) => (
-                            <li
-                              key={step.label}
-                              className={
-                                step.status === 'done'
-                                  ? 'workflow-step-done'
-                                  : step.status === 'blocked'
-                                    ? 'workflow-step-blocked'
-                                    : step.status === 'current'
-                                      ? 'workflow-step-current'
-                                      : ''
-                              }
-                            >
-                              <div className="workflow-step-item">
-                                <span className="workflow-step-label">{step.label}</span>
-                                <span
-                                  className={`slds-badge workflow-step-indicator ${step.status === 'done' ? 'slds-theme_success' : step.status === 'blocked' ? 'slds-theme_warning' : step.status === 'current' ? 'slds-theme_info' : ''}`}
-                                >
-                                  {step.statusLabel}
-                                </span>
-                              </div>
-                            </li>
-                          ))}
-                        </ol>
-                        {!allDocumentsReady ? <p className="workflow-missing-note slds-text-color_error" aria-live="polite"><strong>Missing documents:</strong> {missingDocuments.join(', ')}</p> : null}
-                      </div>
-
-                      <div className="foundation-tile slds-m-top_medium">
-                        <p className="slds-text-title_caps">Confirmations</p>
-                        <div className="slds-m-top_x-small">
-                          <Checkbox labels={{ label: 'Identity details matched with record' }} checked={identityConfirmed} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setIdentityConfirmed(event.target?.checked ?? false)} />
-                        </div>
-                        <div className="slds-m-top_x-small">
-                          <Checkbox labels={{ label: 'Address verification completed' }} checked={addressConfirmed} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setAddressConfirmed(event.target?.checked ?? false)} />
-                        </div>
-                        <div className="slds-m-top_x-small">
-                          <Checkbox labels={{ label: 'Required document reviewed and accepted' }} checked={photoConfirmed} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setPhotoConfirmed(event.target?.checked ?? false)} />
-                        </div>
-                        <p className="slds-m-top_medium slds-text-color_weak" role="status" aria-live="polite">
-                          {allCoreChecksConfirmed ? (allDocumentsReady ? 'All confirmations complete.' : `Confirmations complete. Required document still pending: ${nextRequiredDocument}.`) : 'Complete all confirmations before compliance and issuance.'}
-                        </p>
-                      </div>
-
-                      <div className="foundation-tile slds-m-top_medium">
-                        <p className="slds-text-title_caps">Case progress</p>
-                        <div className="slds-m-top_small">
-                          {processProgress.filter((_, i) => i > 0).map((step) => (
-                            <div key={step.name} className="slds-m-bottom_medium">
-                              <div className="slds-grid slds-grid_align-spread">
-                                <span className="slds-text-body_small slds-text-color_weak">{step.name}</span>
-                                <span className="slds-text-body_small">{step.value}%</span>
-                              </div>
-                              <ProgressBar value={step.value} className="slds-m-top_x-small" />
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="slds-m-top_medium">
-                        <p className="slds-text-title_caps">Primary actions</p>
-                        <div className="slds-grid slds-grid_vertical-align-center slds-m-top_medium" style={{ gap: '0.5rem' }}>
-                          {canVerifyDocuments && nextRequiredDocument ? (
-                            <div>
-                              <Button label={`Verify ${nextRequiredDocument}`} variant="neutral" onClick={handleVerifyDocuments} />
-                            </div>
-                          ) : null}
-                          <div>
-                            {canIssueTicket ? (
-                              <Button label="Issue and close ticket" variant="brand" onClick={handleCloseTicket} />
-                            ) : canRunCompliance ? (
-                              <Button label="Run compliance check" variant="brand" onClick={handleEverythingChecksOut} />
-                            ) : ['Approved', 'Follow-up scheduled'].includes(activeTicket.status) ? (
-                              <Button label="Next in queue" variant="brand" onClick={handleOpenQueueModal} />
-                            ) : (
-                              <Button label="Run compliance check" variant="neutral" disabled
-                                aria-describedby="compliance-hint"
-                                onClick={handleEverythingChecksOut}
-                              />
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                      <p id="compliance-hint" className="slds-assistive-text">Complete all confirmations and verify all documents before running the compliance check.</p>
-                    </div>
-                  </Card>
-                </div>
-
-                <div>
-                  <Card heading="Case details" icon={<Icon category="standard" name="user" />}>
-                    <div className="slds-p-around_medium">
-                      <div className="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-wrap" style={{ gap: '0.5rem' }}>
-                        <p className="slds-text-heading_small">Ticket {activeTicket.id}</p>
-                        <span className={`slds-badge ${ticketStatusBadge || 'slds-theme_info'}`}>{activeTicket.status}</span>
-                      </div>
-                      <p className="slds-m-top_x-small slds-text-body_small slds-text-color_weak">
-                        {activeTicket.service} · {activeTicket.visitType}
-                      </p>
-
-                      <div className="case-meta-list slds-m-top_medium" role="list" aria-label="Current ticket details">
-                        <div className="case-meta-row" role="listitem">
-                          <p className="case-meta-label">Customer</p>
-                          <p className="case-meta-value">{activeTicket.customer}</p>
-                        </div>
-                        <div className="case-meta-row" role="listitem">
-                          <p className="case-meta-label">Previous visit</p>
-                          <p className="case-meta-value">{activeTicket.lastVisit}</p>
-                        </div>
-                        <div className="case-meta-row" role="listitem">
-                          <p className="case-meta-label">Counter</p>
-                          <p className="case-meta-value">{activeTicket.counter}</p>
-                        </div>
-                        <div className="case-meta-row" role="listitem">
-                          <p className="case-meta-label">Owner</p>
-                          <p className="case-meta-value">{activeTicket.owner}</p>
-                        </div>
-                        <div className="case-meta-row" role="listitem">
-                          <p className="case-meta-label">Due now</p>
-                          <p className="case-meta-value">{activeTicket.due}</p>
-                        </div>
-                        <div className="case-meta-row" role="listitem">
-                          <p className="case-meta-label">Priority</p>
-                          <p className="case-meta-value">
-                            <span className={`slds-badge ${statusBadgeTone}`}>{activeTicket.priority}</span>
-                          </p>
-                        </div>
-                      </div>
-
-                      {activeTicket.exceptionState ? <p className="slds-m-top_small slds-text-color_error"><strong>Exception state:</strong> {activeTicket.exceptionState}</p> : null}
-
-                      <div className="case-section">
-                        <p className="slds-text-title_caps">Previously submitted</p>
-                        {activeTicket.priorSubmissions.length > 0 ? (
-                          <div className="slds-m-top_x-small">
-                            {activeTicket.priorSubmissions.map((submission) => (
-                              <span key={submission} className="case-doc-chip">{submission}</span>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="slds-m-top_x-small slds-text-body_small slds-text-color_weak">No prior submissions on file.</p>
-                        )}
-                      </div>
-
-                      <div className="case-section">
-                        <p className="slds-text-title_caps">Document status</p>
-                        <p className="slds-text-body_small slds-text-color_weak slds-m-top_x-small">Required for this case</p>
-                        <div className="case-doc-list">
-                          {requiredDocuments.map((doc, index) => {
-                            const isVerified = index < activeTicket.docsVerified;
-                            return (
-                              <div key={doc} className={`case-doc-row${!isVerified ? ' case-doc-missing' : ''}`}>
-                                <span className="slds-text-body_small">{doc}</span>
-                                <span className={`slds-badge ${isVerified ? 'slds-theme_success' : 'slds-theme_warning'}`} style={{ flexShrink: 0, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
-                                  {isVerified ? 'Verified' : 'Missing'}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    </div>
-                  </Card>
-
-                  <Card heading="Exceptions and flagging" icon={<Icon category="standard" name="choice" />} className="slds-m-top_medium">
-                    <div className="slds-p-around_medium">
-                      <p className="slds-text-body_small slds-text-color_weak">Use only when the case cannot follow the normal path. Supervisor review covers policy exceptions, identity mismatch, or legal discrepancies the agent cannot resolve.</p>
-                      <RadioGroup
-                        labels={{ label: 'Decision' }}
-                        name="decision"
-                        value={caseDecision}
-                        onChange={(event: React.ChangeEvent<HTMLInputElement>) => setCaseDecision(event.target?.value ?? '')}
-                      >
-                        <Radio labels={{ label: 'Reschedule for missing documents' }} value="reschedule" />
-                        <Radio labels={{ label: 'Send to supervisor review' }} value="escalate" />
-                        <Radio labels={{ label: 'Hold / no interaction possible (flag)' }} value="hold" />
-                      </RadioGroup>
-                      <Textarea
-                        label="Note"
-                        value={caseDecisionNote}
-                        onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => setCaseDecisionNote(event.target?.value ?? '')}
-                        placeholder="Reason, missing context, or follow-up instruction"
-                      />
-                      <Button
-                        label={
-                          caseDecision === 'reschedule' ? 'Reschedule case' :
-                          caseDecision === 'escalate' ? 'Escalate to supervisor' :
-                          caseDecision === 'hold' ? 'Flag and hold' :
-                          'Select a decision above'
-                        }
-                        variant="neutral"
-                        className="slds-m-top_medium"
-                        disabled={!caseDecision}
-                        onClick={handleConfirmDecision}
-                      />
-                    </div>
-                  </Card>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <Modal
-          isOpen={isQueueModalOpen}
-          ariaHideApp={true}
-          heading="Current queue"
-          containerClassName="queue-modal__container"
-          contentClassName="queue-modal__content"
-          contentStyle={{ padding: 0 }}
-          footer={
-            <div className="slds-grid slds-grid_align-spread slds-grid_vertical-align-center slds-wrap">
-              <div className="slds-button-group" role="group" aria-label="Queue pagination">
-                <Button label="Previous" variant="neutral" disabled={clampedQueuePage === 1} onClick={() => setQueuePage((page) => Math.max(1, page - 1))} />
-                <Button label="Next" variant="neutral" disabled={clampedQueuePage === queuePageCount} onClick={() => setQueuePage((page) => Math.min(queuePageCount, page + 1))} />
-              </div>
-              <p className="slds-text-body_small slds-text-color_weak" role="status" aria-live="polite" aria-atomic="true">
-                Page {clampedQueuePage} of {queuePageCount} · Showing {pagedPendingTickets.length} of {pendingTickets.length} pending tickets
-              </p>
-              <Button label="Close" variant="neutral" onClick={() => setIsQueueModalOpen(false)} />
-            </div>
-          }
-          onRequestClose={() => setIsQueueModalOpen(false)}
-        >
-          <div className="slds-p-around_medium">
-            <p className="slds-text-body_small slds-text-color_weak slds-m-bottom_medium">Select the pending ticket you want to work on now.</p>
-            <div className="queue-modal__table-shell">
-              <div role="region" aria-label="Pending queue tickets">
-              <DataTable
-                items={pagedPendingTickets}
-                id="current-queue-table"
-                keyField="id"
-              >
-                <DataTableColumn key="id" label="Ticket" property="id" />
-                <DataTableColumn key="customer" label="Customer" property="customer" />
-                <DataTableColumn key="service" label="Service" property="service" />
-                <DataTableColumn key="counter" label="Counter" property="counter" />
-                <DataTableColumn key="status" label="Status" property="status" />
-                <DataTableColumn key="due" label="Due" property="due" />
-                <DataTableColumn key="action" label="Action" property="action">
-                  <QueueActionCell activeTicketId={activeTicket.id} onOpenTicket={handleOpenQueueTicket} />
-                </DataTableColumn>
-              </DataTable>
-              </div>
-            </div>
-          </div>
-        </Modal>
-
-        <Modal
-          isOpen={isRescheduleModalOpen}
-          ariaHideApp={true}
-          heading={`Reschedule case · ${activeTicket.id}`}
-          footer={
-            <div className="slds-button-group" role="group">
-              <Button label="Cancel" variant="neutral" onClick={() => setIsRescheduleModalOpen(false)} />
-              <Button label="Confirm reschedule" variant="brand" onClick={handleRescheduleCase} />
-            </div>
-          }
-          onRequestClose={() => setIsRescheduleModalOpen(false)}
-        >
-          <div className="slds-p-around_medium slds-form_stacked">
-            <p className="slds-m-bottom_medium" role="note">This case cannot be completed until missing mandatory documents are provided.</p>
-            <Input
-              label="Return appointment"
-              value={rescheduleDate}
-              onChange={(event: React.ChangeEvent<HTMLInputElement>) => setRescheduleDate(event.target?.value ?? '')}
-              placeholder="Example: 2026-08-08 10:30 AM"
-            />
-            <Textarea
-              label="Instructions for customer"
-              value={rescheduleNote}
-              onChange={(event: React.ChangeEvent<HTMLTextAreaElement>) => setRescheduleNote(event.target?.value ?? '')}
-            />
-            <p className="slds-m-top_medium" aria-live="polite"><strong>Missing documents:</strong> {missingDocuments.join(', ') || 'None'}</p>
-          </div>
-        </Modal>
-
-        <Modal
-          isOpen={isModalOpen}
-          ariaHideApp={true}
-          heading={`Supervisor review · ${activeTicket.id}`}
-          contentClassName="supervisor-modal__content"
-          footer={
-            <div className="supervisor-modal__footer-wrap">
-              <div className="slds-button-group" role="group">
-                <Button label="Cancel" variant="neutral" onClick={() => setIsModalOpen(false)} />
-                <Button label="Submit review" variant="brand" onClick={handleSubmitReview} />
-              </div>
-            </div>
-          }
-          onRequestClose={() => setIsModalOpen(false)}
-        >
-          <div className="slds-grid slds-gutters_medium slds-wrap" key={activeTicket.id}>
-            <div className="slds-col slds-size_1-of-1">
-              <div className="slds-form_stacked">
-                <Input label="Customer" defaultValue={activeTicket.customer} />
-                <Textarea label="Supervisor note" defaultValue={`Reviewing ${activeTicket.id} (${activeTicket.service}) currently marked ${activeTicket.status}.`} />
-                <RadioGroup labels={{ label: 'Priority' }} name="priority" value={selectedPriority} onChange={(event: React.ChangeEvent<HTMLInputElement>) => setSelectedPriority(event.target?.value ?? '')}>
-                  <Radio labels={{ label: 'High' }} value="High" />
-                  <Radio labels={{ label: 'Medium' }} value="Medium" />
-                  <Radio labels={{ label: 'Low' }} value="Low" />
-                </RadioGroup>
-                <div className="supervisor-notify-checkbox">
-                  <Checkbox labels={{ label: 'Notify customer via SMS when ticket status changes' }} />
-                </div>
-              </div>
-            </div>
-          </div>
-        </Modal>
-      </div>
-      </>
-    </IconSettings>
+    </div>
   );
 }
