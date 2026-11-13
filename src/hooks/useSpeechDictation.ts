@@ -49,8 +49,8 @@ const START_TIMEOUT_MS = 6_000;
 const PERMISSION_PROMPT_TIMEOUT_MS = 30_000;
 // A stop normally ends within a second; past this, assume the browser won't confirm it.
 const STOP_TIMEOUT_MS = 3_000;
-// Give the speaker a natural pause before treating the thought as complete.
-const DICTATION_PAUSE_MS = 4_000;
+// Give the speaker a short natural pause before treating the thought as complete.
+const DICTATION_PAUSE_MS = 3_000;
 
 interface SpeechDictationOptions {
   maxLength: number;
@@ -150,6 +150,13 @@ export function useSpeechDictation({ maxLength, onText, onDone }: SpeechDictatio
         submitOnEnd = submit;
         clearTimers();
         recognition.stop();
+        // A pause is the submit signal; don't make submission depend on the browser
+        // delivering a later `onend` event.
+        if (submit) {
+          finish();
+          recognition.abort();
+          return;
+        }
         timerRef.current = setTimeout(() => {
           finish();
           recognition.abort();
