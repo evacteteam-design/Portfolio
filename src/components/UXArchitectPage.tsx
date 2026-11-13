@@ -1,7 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
-import { FileDown, FlaskConical, LayoutTemplate, Route, Users } from "lucide-react";
+import {
+  FileDown,
+  FlaskConical,
+  LayoutTemplate,
+  Lightbulb,
+  Mic,
+  Route,
+  Square,
+  Users,
+} from "lucide-react";
 import {
   Alert,
   Avatar,
@@ -14,9 +23,11 @@ import {
   Toast,
 } from "@akhil-vanga/design-system";
 import { BriefLoadingScene } from "@/components/BriefLoadingScene";
+import { useSpeechDictation } from "@/hooks/useSpeechDictation";
 import {
   UX_PLATFORMS,
   type JourneyStage,
+  type QuickAnswer,
   type UXArchitectureResponse,
   type UXPlatform,
   type UserPersona,
@@ -36,8 +47,14 @@ interface BriefState {
 const pageFrame = "mx-auto w-full max-w-[160rem] px-4 sm:px-6 md:px-14";
 const eyebrow = "text-xs font-semibold uppercase tracking-[0.12em] text-[var(--av-color-muted)]";
 const formatStep = (index: number) => String(index + 1).padStart(2, "0");
+const IDEA_MIN_LENGTH = 10;
+const IDEA_MAX_LENGTH = 500;
 
 const deliverables = [
+  {
+    title: "Quick answer",
+    detail: "A straight reply to your question or problem, plus three steps to take now.",
+  },
   {
     title: "User personas",
     detail: "Three audience hypotheses with goals, frustrations, and behaviors.",
@@ -76,6 +93,10 @@ const previewTiles = [
 
 const presets = [
   {
+    label: "Beat procrastination",
+    idea: "I keep putting off big projects until the last minute. How can I stay focused and actually finish them?",
+  },
+  {
     label: "Dog-walking marketplace",
     idea: "A neighborhood app that helps busy dog owners find trusted, last-minute walkers nearby.",
   },
@@ -90,6 +111,24 @@ const presets = [
 ];
 
 const sampleBrief: UXArchitectureResponse = {
+  quickAnswer: {
+    answer:
+      "There's real demand when owners need last-minute care, but trust is the riskiest assumption. Prove owners will hand a nearby stranger their keys before investing in scheduling features.",
+    steps: [
+      {
+        title: "Interview ten dog owners",
+        detail: "Ask how they found their last walker and what nearly stopped them from booking.",
+      },
+      {
+        title: "Run a manual pilot",
+        detail: "Match a few owners and walkers by text for two weeks to see who books again.",
+      },
+      {
+        title: "Test trust signals",
+        detail: "Compare which profile details, such as reviews, ID checks, or intro videos, make owners say yes.",
+      },
+    ],
+  },
   projectTitle: "Neighborhood dog-walking marketplace",
   valueProposition:
     "Help dog owners confidently find and coordinate trusted neighborhood care.",
@@ -759,7 +798,43 @@ function WireframeGallery({
   );
 }
 
+function QuickAnswerCard({ quickAnswer }: { quickAnswer: QuickAnswer }) {
+  return (
+    <Card>
+      <section aria-labelledby="quick-answer-title" className="grid gap-4 p-5 wrap-break-word @3xl/brief:p-6">
+        <div className="flex items-center gap-2.5">
+          <span
+            className="grid size-8 shrink-0 place-items-center rounded-full bg-[#fff5df] text-[var(--av-color-warning)]"
+            aria-hidden="true"
+          >
+            <Lightbulb className="size-4" strokeWidth={2} />
+          </span>
+          <h2 id="quick-answer-title" className="text-lg font-semibold text-[var(--av-color-ink)]">
+            Quick answer
+          </h2>
+        </div>
+        <p className="max-w-4xl leading-relaxed text-[var(--av-color-ink)]">{quickAnswer.answer}</p>
+        <ol className="grid grid-cols-1 gap-3 @3xl/brief:grid-cols-3" aria-label="Steps to take now">
+          {quickAnswer.steps.map((step, index) => (
+            <li
+              key={`${step.title}-${index}`}
+              className="grid min-w-0 content-start gap-1.5 rounded-xl border border-[var(--av-color-border)] bg-[var(--av-color-surface)] p-4"
+            >
+              <span className={eyebrow}>Step {formatStep(index)}</span>
+              <p className="font-semibold leading-snug text-[var(--av-color-ink)]">{step.title}</p>
+              <p className="text-sm leading-relaxed text-[var(--av-color-muted)]">{step.detail}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+    </Card>
+  );
+}
+
 function toMarkdown(result: UXArchitectureResponse): string {
+  const steps = result.quickAnswer.steps
+    .map((step, index) => `${index + 1}. **${step.title}**: ${step.detail}`)
+    .join("\n");
   const personas = result.personas
     .map(
       (persona, index) =>
@@ -779,7 +854,7 @@ function toMarkdown(result: UXArchitectureResponse): string {
     )
     .join("\n\n");
 
-  return `# ${result.projectTitle}\n\n${result.valueProposition}\n\n> ${result.researchNote}\n\n## User personas\n\n${personas}\n\n## User journey\n\n${journey}\n\n## Wireframe blueprint\n\n${wireframes}\n`;
+  return `# ${result.projectTitle}\n\n${result.valueProposition}\n\n> ${result.researchNote}\n\n## Quick answer\n\n${result.quickAnswer.answer}\n\n${steps}\n\n## User personas\n\n${personas}\n\n## User journey\n\n${journey}\n\n## Wireframe blueprint\n\n${wireframes}\n`;
 }
 
 function ExportToolbar({
@@ -855,6 +930,18 @@ export function UXArchitectPage() {
   const [completedRuns, setCompletedRuns] = useState(0);
   const outputRef = useRef<HTMLElement>(null);
   const errorRef = useRef<HTMLDivElement>(null);
+  const [voiceNote, setVoiceNote] = useState("");
+  // The last idea sent, so a fresh mic tap after a brief starts a new question instead of appending.
+  const [lastRequestedIdea, setLastRequestedIdea] = useState("");
+  const dictation = useSpeechDictation({
+    maxLength: IDEA_MAX_LENGTH,
+    onText: setIdea,
+    // Like voice search: once the speaker pauses, their idea goes straight to the generator.
+    onDone: (spokenIdea) => {
+      if (spokenIdea.trim().length >= IDEA_MIN_LENGTH) void requestBrief(spokenIdea);
+      else setVoiceNote("That's a little short. Add a few more words, then generate.");
+    },
+  });
 
   // When the output stacks below the form (small screens), bring the loading scene into view.
   useEffect(() => {
@@ -876,9 +963,32 @@ export function UXArchitectPage() {
     }
   }, [error]);
 
-  async function generate(event: FormEvent<HTMLFormElement>) {
+  // Text that's already been answered doesn't count as a new draft.
+  const hasFreshDraft =
+    !dictation.listening && idea.trim().length >= IDEA_MIN_LENGTH && (idea !== lastRequestedIdea || Boolean(error));
+  const voiceUnavailable = dictation.ready && !dictation.supported;
+
+  function toggleDictation() {
+    if (dictation.listening) return dictation.stop();
+    setVoiceNote("");
+    const startFresh = idea === lastRequestedIdea && !error;
+    if (startFresh) setIdea("");
+    dictation.start(startFresh ? "" : idea);
+  }
+
+  function generate(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    // Enter can submit the form even while the button shows its loading state.
+    if (loading) return;
+    // Submit exactly what's on screen; late speech results shouldn't rewrite the idea mid-request.
+    dictation.cancel();
+    void requestBrief(idea);
+  }
+
+  async function requestBrief(requestedIdea: string) {
     const requestedPlatform = platform;
+    setLastRequestedIdea(requestedIdea);
+    setVoiceNote("");
     setError("");
     setNotice("");
     setBrief(null);
@@ -888,7 +998,7 @@ export function UXArchitectPage() {
       const response = await fetch("/api/generate-ux", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idea, platform: requestedPlatform }),
+        body: JSON.stringify({ idea: requestedIdea, platform: requestedPlatform }),
       });
       // Host timeouts can return non-JSON pages; fall back to a generic message.
       const payload: unknown = await response.json().catch(() => null);
@@ -943,10 +1053,15 @@ export function UXArchitectPage() {
               UX Strategy &amp; Wireframe Architect
             </h1>
             <p className="mt-5 max-w-2xl text-sm leading-relaxed text-white/70 sm:text-base">
-              Turn a product premise into a testable starting point: audience hypotheses,
-              an end-to-end journey, and annotated wireframe blueprints for the key screens.
+              Talk through a product idea or a problem you&apos;re stuck on. Get a straight answer,
+              then a testable UX starting point: audience hypotheses, an end-to-end journey, and
+              annotated wireframe blueprints for a solution.
             </p>
             <div className="mt-6 flex flex-wrap gap-2">
+              <Badge tone="brand">
+                <Mic className="size-3.5" aria-hidden="true" />
+                Talk, don&apos;t type
+              </Badge>
               <Badge tone="brand">
                 <FileDown className="size-3.5" aria-hidden="true" />
                 Markdown &amp; JSON export
@@ -959,7 +1074,7 @@ export function UXArchitectPage() {
           </div>
           <ol
             aria-label="What each brief includes"
-            className="hidden gap-3 sm:grid sm:grid-cols-3 xl:grid-cols-1"
+            className="hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-1"
           >
             {deliverables.map((item, index) => (
               <li
@@ -990,11 +1105,74 @@ export function UXArchitectPage() {
           <Card>
             <div className="av-card__body grid gap-5">
               <div>
-                <h2 className="text-xl font-semibold text-[var(--av-color-ink)]">Start with an idea</h2>
+                <h2 className="text-xl font-semibold text-[var(--av-color-ink)]">Just say it</h2>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--av-color-muted)]">
-                  Keep it to one or two sentences. Avoid adding private or sensitive information.
+                  A product idea, a question, or something you&apos;re stuck on. No typing needed;
+                  leave out names and private details.
                 </p>
               </div>
+
+              <div className="grid gap-3 rounded-[var(--av-radius-lg)] border border-[color-mix(in_srgb,var(--av-color-brand)_22%,transparent)] bg-[color-mix(in_srgb,var(--av-color-brand)_6%,var(--av-color-canvas))] p-4">
+                {voiceUnavailable ? (
+                  <p className="text-sm leading-relaxed text-[var(--av-color-muted)]">
+                    Voice input works in Chrome, Edge, and Safari. In this browser, type your idea below.
+                  </p>
+                ) : (
+                  <>
+                    {/* Rendered disabled until hydration confirms support, so the layout doesn't jump. */}
+                    <Button
+                      type="button"
+                      size="lg"
+                      variant={dictation.listening ? "danger" : hasFreshDraft ? "secondary" : "primary"}
+                      className="w-full"
+                      disabled={!dictation.supported || loading}
+                      onClick={toggleDictation}
+                    >
+                      {dictation.listening ? (
+                        <Square className="size-4" fill="currentColor" aria-hidden="true" />
+                      ) : (
+                        <Mic className="size-5" aria-hidden="true" />
+                      )}
+                      {dictation.listening ? "Stop listening" : "Tap and talk"}
+                    </Button>
+                    <p
+                      role="status"
+                      className={`text-center text-xs leading-relaxed ${
+                        dictation.error ? "text-[var(--av-color-danger)]" : "text-[var(--av-color-muted)]"
+                      }`}
+                    >
+                      {dictation.listening ? (
+                        <span className="inline-flex items-center gap-2">
+                          <span
+                            className="size-2 shrink-0 rounded-full bg-[var(--av-color-danger)] motion-safe:animate-pulse"
+                            aria-hidden="true"
+                          />
+                          Listening. Say it like you&apos;d tell a friend, then pause.
+                        </span>
+                      ) : dictation.error ? (
+                        dictation.error
+                      ) : dictation.limitReached ? (
+                        `Stopped at the ${IDEA_MAX_LENGTH}-character limit. Edit the text to tighten it up.`
+                      ) : dictation.stoppedForReview ? (
+                        "Stopped. Edit if you like, then press Enter to send."
+                      ) : (
+                        voiceNote || "Tap, talk, then pause. Your answer and UX brief start on their own."
+                      )}
+                    </p>
+                  </>
+                )}
+              </div>
+
+              {!voiceUnavailable && (
+                <div
+                  className="flex items-center gap-3 text-xs font-semibold uppercase tracking-wide text-[var(--av-color-muted)]"
+                  aria-hidden="true"
+                >
+                  <span className="h-px flex-1 bg-[var(--av-color-border)]" />
+                  or type it
+                  <span className="h-px flex-1 bg-[var(--av-color-border)]" />
+                </div>
+              )}
 
               <div>
                 <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[var(--av-color-muted)]">
@@ -1007,7 +1185,11 @@ export function UXArchitectPage() {
                       type="button"
                       size="sm"
                       variant="secondary"
-                      onClick={() => setIdea(preset.idea)}
+                      onClick={() => {
+                        dictation.cancel();
+                        setVoiceNote("");
+                        setIdea(preset.idea);
+                      }}
                     >
                       {preset.label}
                     </Button>
@@ -1017,15 +1199,27 @@ export function UXArchitectPage() {
 
               <form className="grid gap-4" onSubmit={generate}>
                 <TextArea
-                  label="Product idea"
-                  placeholder="A mobile app that helps busy dog owners find trusted neighborhood walkers."
-                  hint={`${idea.length}/500 characters`}
+                  label="Your idea or problem"
+                  placeholder={
+                    dictation.listening
+                      ? "Listening… your words appear here."
+                      : "I keep procrastinating on side projects. Or: an app that helps dog owners find trusted walkers."
+                  }
+                  hint={`${idea.length}/${IDEA_MAX_LENGTH} characters · Enter to send, Shift+Enter for a new line`}
                   value={idea}
                   onChange={(event) => setIdea(event.currentTarget.value)}
-                  minLength={10}
-                  maxLength={500}
+                  // Like a search box: Enter sends, Shift+Enter adds a line, and IME composition is left alone.
+                  onKeyDown={(event) => {
+                    if (event.key !== "Enter" || event.shiftKey || event.nativeEvent.isComposing) return;
+                    event.preventDefault();
+                    event.currentTarget.form?.requestSubmit();
+                  }}
+                  // Speech rewrites the field as it listens, so typing waits until it stops.
+                  readOnly={dictation.listening}
+                  minLength={IDEA_MIN_LENGTH}
+                  maxLength={IDEA_MAX_LENGTH}
                   required
-                  rows={5}
+                  rows={3}
                 />
                 <SelectField
                   label="Target platform"
@@ -1036,8 +1230,8 @@ export function UXArchitectPage() {
                     <option key={option} value={option}>{option}</option>
                   ))}
                 </SelectField>
-                <Button type="submit" size="lg" loading={loading}>
-                  Generate UX architecture
+                <Button type="submit" size="lg" variant={hasFreshDraft || loading ? "primary" : "secondary"} loading={loading}>
+                  Get answer &amp; UX brief
                 </Button>
                 <Button type="button" variant="ghost" onClick={loadSample}>
                   Explore a sample brief
@@ -1050,9 +1244,12 @@ export function UXArchitectPage() {
                 </div>
               )}
               <p className="text-xs leading-relaxed text-[var(--av-color-muted)]">
-                Your idea is sent to OpenAI&apos;s API to create this brief.
-                Don&apos;t include personal, confidential, or regulated information.
+                What you enter is sent to OpenAI&apos;s API to create your answer and brief.
+                Describe situations in general terms and leave out names, health details, and
+                other private information. Answers are general guidance, not professional advice.
                 This free demo limits how many briefs can be generated each day.
+                {dictation.supported &&
+                  " Voice input is transcribed by your browser's speech service, which may process audio online."}
               </p>
             </div>
           </Card>
@@ -1080,11 +1277,11 @@ export function UXArchitectPage() {
                   ))}
                 </div>
                 <h2 className="text-xl font-semibold text-[var(--av-color-ink)]">
-                  Your product brief starts here
+                  Your answer and brief start here
                 </h2>
                 <p className="max-w-md text-sm leading-relaxed text-[var(--av-color-muted)]">
-                  Generate a brief with your idea, or explore the sample to see personas,
-                  a journey map, and interactive wireframe blueprints.
+                  Ask about an idea or a problem, or explore the sample to see a quick answer,
+                  personas, a journey map, and interactive wireframe blueprints.
                 </p>
               </div>
             </Card>
@@ -1104,10 +1301,11 @@ export function UXArchitectPage() {
                 </Alert>
               ) : (
                 <Alert tone="info" title="Treat this as a starting hypothesis">
-                  Validate the audience, pain points, and journey with real users before
-                  making product decisions.
+                  The answer is general guidance, not professional advice. Validate the audience,
+                  pain points, and journey with real users before making product decisions.
                 </Alert>
               )}
+              <QuickAnswerCard quickAnswer={brief.data.quickAnswer} />
               <Card>
                 <div className="grid gap-5 p-5 wrap-break-word @3xl/brief:grid-cols-[minmax(0,1fr)_auto] @3xl/brief:items-start @3xl/brief:p-6">
                   <div className="grid min-w-0 gap-3">

@@ -93,6 +93,13 @@ function mockUpstashAndOpenAI(options: { upstashStatus?: number } = {}) {
 
 function brief() {
   return {
+    quickAnswer: {
+      answer: "Start small: share the tools neighbors already own before buying inventory.",
+      steps: Array.from({ length: 3 }, (_, index) => ({
+        title: `Step ${index + 1}`,
+        detail: "Ask five neighbors which tools they would lend.",
+      })),
+    },
     projectTitle: "Neighborhood tool library",
     valueProposition: "Borrow tools from nearby neighbors.",
     researchNote: "AI-generated hypotheses that require validation with real users.",
@@ -195,6 +202,8 @@ test("returns a configuration error without contacting OpenAI when the key is mi
 test("rejects refused, truncated, and invalid OpenAI responses", async () => {
   const invalidBrief = brief();
   invalidBrief.personas.pop();
+  const missingAdvice = brief();
+  missingAdvice.quickAnswer.steps.pop();
   const cases = [
     {
       payload: {
@@ -214,6 +223,7 @@ test("rejects refused, truncated, and invalid OpenAI responses", async () => {
       message: /cut off/,
     },
     { payload: completedOutput(invalidBrief), status: 502, message: /incomplete brief/ },
+    { payload: completedOutput(missingAdvice), status: 502, message: /incomplete brief/ },
   ];
 
   for (const scenario of cases) {

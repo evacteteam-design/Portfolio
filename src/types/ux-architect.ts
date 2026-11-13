@@ -54,7 +54,19 @@ export interface WireframeScreen {
   blocks: WireframeBlock[];
 }
 
+export interface AdviceStep {
+  title: string;
+  detail: string;
+}
+
+/** A direct reply to what the person asked, before the UX brief that designs a solution. */
+export interface QuickAnswer {
+  answer: string;
+  steps: [AdviceStep, AdviceStep, AdviceStep];
+}
+
 export interface UXArchitectureResponse {
+  quickAnswer: QuickAnswer;
   projectTitle: string;
   valueProposition: string;
   researchNote: string;
@@ -65,13 +77,20 @@ export interface UXArchitectureResponse {
 
 // Shared by the generation prompt, server normalization, and validation so all three agree.
 export const UX_TEXT_LIMITS: {
-  brief: Record<Exclude<keyof UXArchitectureResponse, "personas" | "journey" | "wireframes">, number>;
+  brief: Record<
+    Exclude<keyof UXArchitectureResponse, "quickAnswer" | "personas" | "journey" | "wireframes">,
+    number
+  >;
+  quickAnswer: Record<Exclude<keyof QuickAnswer, "steps">, number>;
+  adviceStep: Record<keyof AdviceStep, number>;
   persona: Record<keyof UserPersona, number>;
   journeyStage: Record<keyof JourneyStage, number>;
   screen: Record<Exclude<keyof WireframeScreen, "blocks">, number>;
   block: Record<Exclude<keyof WireframeBlock, "type">, number>;
 } = {
   brief: { projectTitle: 100, valueProposition: 240, researchNote: 240 },
+  quickAnswer: { answer: 420 },
+  adviceStep: { title: 80, detail: 240 },
   persona: {
     archetype: 80,
     context: 240,
@@ -92,6 +111,7 @@ export const UX_TEXT_LIMITS: {
 };
 
 export const UX_COUNTS = {
+  adviceSteps: 3,
   personas: 3,
   journeyStages: 5,
   screens: 3,
@@ -120,6 +140,20 @@ const hasTextFields = (
   Object.entries(limits).every(([key, maxLength]) =>
     isBoundedString(value[key], maxLength),
   );
+
+function isAdviceStep(value: unknown): value is AdviceStep {
+  return isRecord(value) && hasTextFields(value, UX_TEXT_LIMITS.adviceStep);
+}
+
+function isQuickAnswer(value: unknown): value is QuickAnswer {
+  return (
+    isRecord(value) &&
+    hasTextFields(value, UX_TEXT_LIMITS.quickAnswer) &&
+    Array.isArray(value.steps) &&
+    value.steps.length === UX_COUNTS.adviceSteps &&
+    value.steps.every(isAdviceStep)
+  );
+}
 
 function isPersona(value: unknown): value is UserPersona {
   return isRecord(value) && hasTextFields(value, UX_TEXT_LIMITS.persona);
@@ -153,6 +187,7 @@ export function isUXArchitectureResponse(
 ): value is UXArchitectureResponse {
   return (
     isRecord(value) &&
+    isQuickAnswer(value.quickAnswer) &&
     hasTextFields(value, UX_TEXT_LIMITS.brief) &&
     Array.isArray(value.personas) &&
     value.personas.length === UX_COUNTS.personas &&

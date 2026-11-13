@@ -175,6 +175,7 @@ function describeBriefShape(value: unknown) {
   if (!isRecord(value)) return typeof value;
   const count = (list: unknown) => (Array.isArray(list) ? list.length : null);
   return {
+    adviceSteps: count(isRecord(value.quickAnswer) ? value.quickAnswer.steps : undefined),
     personas: count(value.personas),
     journeyStages: count(value.journey),
     blocksPerScreen: Array.isArray(value.wireframes)
@@ -222,7 +223,7 @@ export async function POST(request: NextRequest) {
     !isUXPlatform(body.platform)
   ) {
     return NextResponse.json(
-      { error: "Enter a product idea of 10–500 characters and choose a supported platform." },
+      { error: "Describe your idea or problem in 10–500 characters and choose a supported platform." },
       { status: 400 },
     );
   }
@@ -382,7 +383,7 @@ export async function POST(request: NextRequest) {
       incompleteReason,
     });
     return NextResponse.json(
-      { error: "This idea couldn't be turned into a brief. Try rephrasing it." },
+      { error: "This request couldn't be answered. Try rephrasing it." },
       { status: 422 },
     );
   }
