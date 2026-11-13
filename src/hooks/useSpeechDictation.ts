@@ -49,8 +49,8 @@ const START_TIMEOUT_MS = 6_000;
 const PERMISSION_PROMPT_TIMEOUT_MS = 30_000;
 // A stop normally ends within a second; past this, assume the browser won't confirm it.
 const STOP_TIMEOUT_MS = 3_000;
-// Like voice search, a pause this long after speaking means the speaker is done.
-const DICTATION_PAUSE_MS = 2_500;
+// Give the speaker a natural pause before treating the thought as complete.
+const DICTATION_PAUSE_MS = 4_000;
 
 interface SpeechDictationOptions {
   maxLength: number;
