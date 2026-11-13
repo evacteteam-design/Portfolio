@@ -53,6 +53,12 @@ function getRedisConfig(): RedisConfig | null {
   if (!url || !token) {
     throw new Error("Both the Upstash REST URL and token are required for usage limits.");
   }
+  // fetch() puts an unparseable URL in its error message, which would copy a pasted secret into the logs.
+  if (!URL.canParse(url) || new URL(url).protocol !== "https:") {
+    throw new Error(
+      "The Upstash REST URL must be the https:// address from the Upstash console, not a redis:// connection string or another value.",
+    );
+  }
   return { url: url.replace(/\/+$/, ""), token };
 }
 

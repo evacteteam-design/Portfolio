@@ -424,6 +424,29 @@ test("fails closed instead of generating when the limit store can't be used", as
   assert.equal(services.generations(), 0);
 });
 
+test("keeps a value pasted into the wrong limit setting out of the logs", async () => {
+  const misplacedSecret = "sk-proj-misplaced-secret-not-a-real-credential";
+  process.env.UPSTASH_REDIS_REST_URL = misplacedSecret;
+  process.env.UPSTASH_REDIS_REST_TOKEN = "upstash-token-not-a-real-credential";
+  const logged = mock.method(console, "error", () => {});
+  const services = mockUpstashAndOpenAI();
+
+  for (const url of [misplacedSecret, `redis://default:${misplacedSecret}@limits.example.upstash.io`]) {
+    process.env.UPSTASH_REDIS_REST_URL = url;
+    const response = await POST(request());
+    assert.equal(response.status, 503);
+    assert.match((await response.json()).error, /temporarily unavailable/);
+  }
+
+  const output = logged.mock.calls
+    .flatMap((call) => call.arguments)
+    .map((value) => (value instanceof Error ? `${value.message} ${String(value.cause)}` : String(value)))
+    .join("\n");
+  assert.match(output, /Upstash REST URL must be the https:\/\/ address/);
+  assert.doesNotMatch(output, /misplaced-secret/);
+  assert.equal(services.generations(), 0);
+});
+
 test("keeps the shared daily count when a flood of new visitors fills the in-memory store", async () => {
   process.env.UX_ARCHITECT_DAILY_LIMIT = "1000000";
   const before = (await consumeDailyBudget()).count;
