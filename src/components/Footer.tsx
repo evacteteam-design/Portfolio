@@ -2,14 +2,16 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+// Full-width tool pages need the footer to line up with their content edges.
+const fullWidthRoutes: ReadonlySet<string> = new Set(["/ux-architect"]);
+
 export function Footer() {
   const pathname = usePathname();
-  // Hide footer inside the standalone demo — it breaks immersion
-  if (pathname === '/work/design-system-migration/demo') return null;
+  const frameWidth = fullWidthRoutes.has(pathname) ? "max-w-[160rem]" : "max-w-[var(--max-w)]";
 
   return (
     <footer className="border-t border-[var(--border)] py-8 sm:py-12 px-4 sm:px-6 md:px-14" style={{ background: 'linear-gradient(to bottom, var(--surface), var(--white))' }}>
-      <div className="max-w-[var(--max-w)] mx-auto">
+      <div className={`${frameWidth} mx-auto`}>
         {/* Main footer content */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 sm:gap-8 mb-8 sm:mb-10">
           <div>

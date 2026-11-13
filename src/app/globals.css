@@ -192,6 +192,283 @@ html.lenis, html.lenis body {
 }
 
 /* ══════════════════════════════════════
+   UX BRIEF LOADING SCENE
+   Base styles are the finished still illustration; keyframes only add motion
+   (every animation uses `both`, so elements start hidden and end in place).
+   ══════════════════════════════════════ */
+.ux-scene {
+  --ux-ink: var(--av-color-ink);
+  --ux-brand: var(--av-color-brand);
+  --ux-brand-soft: color-mix(in srgb, var(--av-color-brand) 14%, white);
+  --ux-success: var(--av-color-success);
+  --ux-success-soft: color-mix(in srgb, var(--av-color-success) 14%, white);
+  --ux-amber: var(--warning);
+  --ux-amber-soft: color-mix(in srgb, var(--warning) 26%, white);
+  --ux-danger: var(--danger);
+  --ux-danger-soft: color-mix(in srgb, var(--danger) 14%, white);
+  --ux-line: var(--av-color-border);
+  --ux-surface: var(--av-color-surface);
+  --ux-bar: color-mix(in srgb, var(--av-color-ink) 10%, white);
+  --ux-ease-back: cubic-bezier(0.34, 1.3, 0.64, 1);
+
+  /* A dotted design canvas */
+  background-color: color-mix(in srgb, var(--av-color-surface) 70%, white);
+  background-image: radial-gradient(
+    color-mix(in srgb, var(--av-color-brand) 26%, transparent) 1px,
+    transparent 1.5px
+  );
+  background-size: 18px 18px;
+}
+
+/* Paint (fills, strokes) */
+.ux-scene .ux-f-brand { fill: var(--ux-brand); }
+.ux-scene .ux-f-brand-soft { fill: var(--ux-brand-soft); }
+.ux-scene .ux-f-success { fill: var(--ux-success); }
+.ux-scene .ux-f-success-soft { fill: var(--ux-success-soft); }
+.ux-scene .ux-f-amber { fill: var(--ux-amber); }
+.ux-scene .ux-f-amber-soft { fill: var(--ux-amber-soft); }
+.ux-scene .ux-f-danger { fill: var(--ux-danger); }
+.ux-scene .ux-f-danger-soft { fill: var(--ux-danger-soft); }
+.ux-scene .ux-f-ink { fill: var(--ux-ink); }
+.ux-scene .ux-f-bar { fill: var(--ux-bar); }
+.ux-scene .ux-f-surface { fill: var(--ux-surface); }
+.ux-scene .ux-f-white { fill: #fff; }
+.ux-scene .ux-stroke { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.ux-scene .ux-s-brand { stroke: var(--ux-brand); }
+.ux-scene .ux-s-success { stroke: var(--ux-success); }
+.ux-scene .ux-s-amber { stroke: var(--ux-amber); }
+.ux-scene .ux-s-danger { stroke: var(--ux-danger); }
+.ux-scene .ux-s-ink { stroke: var(--ux-ink); }
+.ux-scene .ux-s-line { stroke: var(--ux-line); }
+.ux-scene .ux-s-white { stroke: #fff; }
+
+/* Artboards: design-system cards that light up while the crew works on them */
+.ux-scene .ux-scene__board {
+  --crew: var(--ux-brand);
+  position: relative;
+  aspect-ratio: 200 / 220;
+  transition: border-color 0.35s ease, box-shadow 0.35s ease,
+    translate 0.35s var(--ease-out-expo), transform 160ms ease;
+}
+.ux-scene .ux-scene__board[data-tone="success"] { --crew: var(--ux-success); }
+.ux-scene .ux-scene__board[data-tone="warning"] { --crew: var(--ux-amber); }
+.ux-scene .ux-scene__board[data-active="true"] {
+  border-color: var(--crew);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--crew) 18%, transparent),
+    0 14px 30px rgb(15 35 55 / 10%);
+  translate: 0 -3px;
+  animation: ux-scene-board-in 0.5s var(--ease-out-expo) both;
+}
+.ux-scene .ux-art { display: block; width: 100%; height: 100%; }
+
+/* Build-in animations. Delays come from the inline --d custom property. */
+.ux-scene .ux-pop,
+.ux-scene .ux-grow,
+.ux-scene .ux-drop,
+.ux-scene .ux-ouch,
+.ux-scene .ux-ripple,
+.ux-scene .ux-logo,
+.ux-scene .ux-cta,
+.ux-scene .ux-sticky,
+.ux-scene .ux-glow,
+.ux-scene .ux-burger rect {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.ux-scene .ux-pop { animation: ux-scene-pop 0.55s var(--ux-ease-back) var(--d, 0s) both; }
+.ux-scene .ux-grow { transform-origin: left center; animation: ux-scene-grow 0.5s var(--ease-out-expo) var(--d, 0s) both; }
+.ux-scene .ux-grow--center { transform-origin: center; }
+.ux-scene .ux-drop { animation: ux-scene-drop 0.7s ease-out var(--d, 0s) both; }
+.ux-scene .ux-draw {
+  /* The long gap keeps a zero-length dash (a stray round-capped dot) off the path end. */
+  stroke-dasharray: 1 2;
+  animation: ux-scene-draw var(--dur, 0.7s) ease-in-out var(--d, 0s) both;
+}
+
+/* Little gags that play once while a board is being worked on */
+.ux-scene .ux-burger__top { animation: ux-scene-burger-top 2.2s ease-in-out 1s; }
+.ux-scene .ux-burger__mid { animation: ux-scene-burger-mid 2.2s ease-in-out 1s; }
+.ux-scene .ux-burger__bottom { animation: ux-scene-burger-bottom 2.2s ease-in-out 1s; }
+.ux-scene .ux-logo { animation: ux-scene-logo 1.4s ease-in-out 1.8s; }
+.ux-scene .ux-cta { animation: ux-scene-press 0.4s ease-in-out 3s; }
+.ux-scene .ux-marker { animation: ux-scene-marker 2.8s ease-in-out 0.7s both; }
+.ux-scene .ux-ouch { opacity: 0; animation: ux-scene-ouch 1.7s ease-out var(--d, 0s) both; }
+.ux-scene .ux-burst { opacity: 0; animation: ux-scene-burst 0.9s ease-out var(--d, 0s) both; }
+
+/* The sticky note pops in, then keeps swinging; endless loops stop once the crew moves on */
+.ux-scene .ux-sticky {
+  transform-origin: 50% 0;
+  animation: ux-scene-pop 0.55s var(--ux-ease-back) var(--d, 0s) both,
+    ux-scene-wiggle 1.6s ease-in-out calc(var(--d, 0s) + 0.55s) infinite;
+}
+.ux-scene .ux-glow { animation: ux-scene-glow 1.6s ease-in-out infinite; }
+.ux-scene .ux-scene__board:not([data-active="true"]) :is(.ux-sticky, .ux-glow) { animation: none; }
+
+/* Multiplayer cursors: hidden until their board is active, then they wander and click */
+.ux-scene .ux-cursor { opacity: 0; transition: opacity 0.25s ease; }
+.ux-scene .ux-scene__board[data-active="true"] .ux-cursor { opacity: 1; }
+.ux-scene .ux-cursor--persona { animation: ux-scene-wander-persona 3s ease-in-out both; }
+.ux-scene .ux-cursor--journey { animation: ux-scene-wander-journey 3s ease-in-out both; }
+.ux-scene .ux-cursor--wireframe { animation: ux-scene-wander-wireframe 3s ease-in-out both; }
+.ux-scene .ux-cursor__arrow {
+  fill: var(--crew);
+  stroke: #fff;
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+.ux-scene .ux-cursor__tag { fill: var(--crew); }
+.ux-scene .ux-ripple {
+  fill: none;
+  stroke: var(--crew);
+  stroke-width: 2;
+  opacity: 0;
+  animation: ux-scene-ripple 0.6s ease-out 3s both;
+}
+
+/* "Someone is working on this" dots next to the active board's label */
+.ux-scene .ux-typing { display: inline-flex; align-items: center; gap: 3px; }
+.ux-scene .ux-typing i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--av-color-muted);
+  animation: ux-scene-typing 1s ease-in-out infinite;
+}
+.ux-scene .ux-typing i:nth-child(2) { animation-delay: 0.15s; }
+.ux-scene .ux-typing i:nth-child(3) { animation-delay: 0.3s; }
+
+/* Doodles around the canvas */
+.ux-scene .ux-deco { position: absolute; z-index: 0; pointer-events: none; }
+.ux-scene .ux-deco--triangle { left: 0.6rem; top: 0.45rem; width: 1.1rem; height: 1.1rem; }
+.ux-scene .ux-deco--squiggle { right: 0.8rem; top: 0.4rem; width: 2.4rem; height: 0.85rem; }
+.ux-scene .ux-deco--plus { left: 0.7rem; bottom: 0.5rem; width: 0.9rem; height: 0.9rem; }
+.ux-scene .ux-deco--ring { right: 0.7rem; bottom: 0.5rem; width: 0.9rem; height: 0.9rem; }
+.ux-scene .ux-float { animation: ux-scene-float 3.4s ease-in-out infinite; }
+.ux-scene .ux-twinkle { animation: ux-scene-twinkle 2.6s ease-in-out infinite; }
+
+.ux-quip { animation: ux-scene-quip-in 0.5s var(--ease-out-expo) both; }
+
+@keyframes ux-scene-board-in {
+  from { opacity: 0.6; translate: 0 8px; }
+  to   { opacity: 1; translate: 0 -3px; }
+}
+/* Keep the overshoot small: the widest pieces fill 86% of an artboard and the SVG clips at its edge. */
+@keyframes ux-scene-pop {
+  from { opacity: 0; transform: scale(0.5); }
+  65%  { opacity: 1; transform: scale(1.05); }
+  to   { opacity: 1; transform: scale(1); }
+}
+@keyframes ux-scene-grow {
+  from { opacity: 0; transform: scaleX(0); }
+  to   { opacity: 1; transform: scaleX(1); }
+}
+@keyframes ux-scene-drop {
+  0%   { opacity: 0; transform: translateY(-28px); }
+  55%  { opacity: 1; transform: translateY(3px); }
+  78%  { transform: translateY(-1.5px); }
+  100% { opacity: 1; transform: translateY(0); }
+}
+@keyframes ux-scene-draw {
+  from { stroke-dashoffset: 1; }
+  to   { stroke-dashoffset: 0; }
+}
+@keyframes ux-scene-burst {
+  0%   { opacity: 0; transform: translate(0, 0) scale(0.3); }
+  20%  { opacity: 1; }
+  100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(1.1) rotate(60deg); }
+}
+@keyframes ux-scene-burger-top {
+  0%, 35%, 100% { transform: none; }
+  50%, 80% { transform: translateY(5.2px) rotate(45deg); }
+}
+@keyframes ux-scene-burger-mid {
+  0%, 35%, 100% { opacity: 1; }
+  50%, 80% { opacity: 0; }
+}
+@keyframes ux-scene-burger-bottom {
+  0%, 35%, 100% { transform: none; }
+  50%, 80% { transform: translateY(-5.2px) rotate(-45deg); }
+}
+@keyframes ux-scene-logo {
+  0%, 100% { transform: scale(1); }
+  35%, 65% { transform: scale(1.8); }
+}
+@keyframes ux-scene-press {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(0.95); }
+}
+@keyframes ux-scene-marker {
+  0%   { opacity: 0; transform: translate(-148px, 42px) scale(0.5); }
+  6%   { opacity: 1; transform: translate(-148px, 42px) scale(1); }
+  28%  { transform: translate(-108px, 8px); }
+  52%  { transform: translate(-70px, 76px); }
+  76%  { transform: translate(-32px, 34px); }
+  100% { opacity: 1; transform: translate(0, 0); }
+}
+@keyframes ux-scene-ouch {
+  0%, 8% { opacity: 0; transform: scale(0.4); }
+  20%    { opacity: 1; transform: scale(1.15); }
+  30%    { transform: scale(1); }
+  80%    { opacity: 1; }
+  100%   { opacity: 0; transform: scale(0.8); }
+}
+@keyframes ux-scene-wiggle {
+  0%, 100% { transform: rotate(0deg); }
+  25%      { transform: rotate(-5deg); }
+  75%      { transform: rotate(5deg); }
+}
+@keyframes ux-scene-glow {
+  0%, 100% { transform: scale(1); }
+  50%      { transform: scale(1.25); }
+}
+/* Cursor tips stay inside x 10–150, y 10–190 so the 41×30 name tag never gets clipped by the board. */
+@keyframes ux-scene-wander-persona {
+  0%   { transform: translate(150px, 176px); }
+  22%  { transform: translate(108px, 70px); }
+  46%  { transform: translate(44px, 124px); }
+  72%  { transform: translate(120px, 150px); }
+  100% { transform: translate(92px, 184px); }
+}
+@keyframes ux-scene-wander-journey {
+  0%   { transform: translate(30px, 186px); }
+  24%  { transform: translate(66px, 76px); }
+  50%  { transform: translate(104px, 130px); }
+  76%  { transform: translate(130px, 104px); }
+  100% { transform: translate(148px, 90px); }
+}
+@keyframes ux-scene-wander-wireframe {
+  0%   { transform: translate(150px, 40px); }
+  24%  { transform: translate(70px, 80px); }
+  48%  { transform: translate(40px, 148px); }
+  74%  { transform: translate(138px, 158px); }
+  100% { transform: translate(100px, 186px); }
+}
+@keyframes ux-scene-ripple {
+  from { opacity: 0.9; transform: scale(0.3); }
+  to   { opacity: 0; transform: scale(2.2); }
+}
+@keyframes ux-scene-typing {
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.45; }
+  30%           { transform: translateY(-3px); opacity: 1; }
+}
+@keyframes ux-scene-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50%      { transform: translateY(-5px) rotate(6deg); }
+}
+@keyframes ux-scene-twinkle {
+  0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.9; }
+  50%      { transform: scale(0.65) rotate(25deg); opacity: 0.45; }
+}
+@keyframes ux-scene-quip-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ux-scene, .ux-scene *, .ux-quip { animation: none !important; transition: none !important; }
+}
+
+/* ══════════════════════════════════════
    REDUCED MOTION
    ══════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {

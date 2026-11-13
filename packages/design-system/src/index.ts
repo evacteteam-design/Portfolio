@@ -9,7 +9,6 @@ export {
   Checkbox,
   DataTable,
   DropdownMenu,
-  DateField,
   EmptyState,
   FileDropzone,
   Grid,
@@ -37,10 +36,13 @@ export type {
   ButtonVariant,
   ComponentSize,
   DataTableColumn,
-  DateFieldProps,
   SelectFieldProps,
   SelectControlProps,
   TextAreaProps,
   TextFieldProps,
   Tone,
 } from "./components.js";
+
+export { DateField } from "./date-field.js";
+export type { DateFieldProps } from "./date-field.js";
+export type { WeekStart } from "./date-utils.js";

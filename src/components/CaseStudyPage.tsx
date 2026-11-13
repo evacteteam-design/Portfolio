@@ -3,6 +3,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { ArrowLeft, Check, X } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 import type { CaseStudy, StudyTabId } from "@/content/caseStudies";
 
@@ -32,7 +33,6 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
   const constraintsSection = study.sections.find((s) => s.id === "constraints");
   const tabOrder: StudyTabId[] = study.tabs?.map((tab) => tab.id) ?? ["problem", "solution", "challenge", "summary"];
   const activeTabData = study.tabs?.find((tab) => tab.id === activeTab);
-  const caseStudyImageAspect = study.slug === "design-system-migration" ? "1680/1100" : "16/9";
   const navItems = ["context", "research", "decisions", "impact"];
   if (study.beforeAfter && study.beforeAfter.length > 0) {
     navItems.splice(1, 0, "before-after");
@@ -60,7 +60,8 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
             navMode === "hero" ? "text-white/75" : "text-[var(--ink3)]"
           }`}
         >
-          ← Akhil Vanga
+          <ArrowLeft className="size-4" aria-hidden="true" />
+          Akhil Vanga
         </Link>
         <div className="hidden md:flex gap-8">
           {navItems.map((id) => (
@@ -71,11 +72,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                 navMode === "hero" ? "text-white/55" : "text-[var(--ink3)]"
               }`}
             >
-              {id === "before-after"
-                ? "Before & After"
-                : id === "research" && study.slug === "design-system-migration"
-                  ? "Assumptions & scope"
-                  : id}
+              {id === "before-after" ? "Before & After" : id}
             </a>
           ))}
         </div>
@@ -135,8 +132,8 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
               { label: "Role", value: study.role },
               { label: "Platform", value: study.platform },
               { label: "Users", value: study.users },
-              { label: study.slug === "design-system-migration" ? "Project type" : "Duration", value: study.duration },
-              { label: study.slug === "design-system-migration" ? "Scope" : "Impact", value: study.impactHeadline },
+              { label: "Duration", value: study.duration },
+              { label: "Impact", value: study.impactHeadline },
             ].map((m) => (
               <div key={m.label} className="px-3 sm:px-5 py-3 sm:py-4 border-r border-b border-white/12">
                 <p className="text-[9px] sm:text-[10px] tracking-[0.12em] uppercase text-white/35 mb-1">{m.label}</p>
@@ -149,71 +146,32 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
           <p className="hero-anim-4 text-base sm:text-lg font-light text-white/52 max-w-[620px] leading-[1.75] border-l-2 pl-4 sm:pl-5" style={{ borderColor: `${study.accentColor}80` }}>
             {study.lede}
           </p>
-
-          {study.slug === "design-system-migration" && (
-            <div className="hero-anim-5 mt-8 flex flex-wrap gap-3">
-              <Link
-                href="/work/design-system-migration/demo"
-                className="inline-flex items-center rounded-full px-5 py-2.5 text-sm font-semibold text-white transition hover:opacity-90"
-                style={{ background: study.accentColor }}
-              >
-                Open interactive prototype
-              </Link>
-              <span className="inline-flex items-center rounded-full border border-white/20 bg-white/10 px-4 py-2.5 text-sm text-white/80">
-                Assumption-based renewal and first-time application flow
-              </span>
-            </div>
-          )}
         </div>
 
         {/* Screenshot shelf */}
         <div className="hero-anim-5 relative z-10 px-4 sm:px-6 md:px-14 max-w-[var(--max-w)] w-full mx-auto">
-          {study.slug === "design-system-migration" ? (
-            <div className="relative overflow-hidden rounded-[28px] sm:rounded-[34px] border border-white/14 shadow-[0_32px_80px_rgba(0,0,0,0.5),0_8px_32px_rgba(0,0,0,0.3)] mb-10 sm:mb-16">
-              <div
-                className="relative w-full"
-                style={{ aspectRatio: caseStudyImageAspect }}
-              >
-                <Image
-                  src={study.heroScreenUrl}
-                  alt={study.heroScreenCaption}
-                  fill
-                  className="object-contain bg-[#0B1830]"
-                  sizes="(max-width: 768px) 100vw, 1200px"
-                  priority
-                />
+          <div className="rounded-lg sm:rounded-xl overflow-hidden border border-white/12 shadow-[0_32px_80px_rgba(0,0,0,0.5),0_8px_32px_rgba(0,0,0,0.3)] mb-10 sm:mb-16">
+            <div className="bg-[rgba(12,18,40,0.97)] px-4 py-2.5 flex items-center gap-2.5 border-b border-white/6">
+              <div className="flex gap-1.5">
+                <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
+                <div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
               </div>
-              <p className="border-t border-white/10 bg-[#0B1830] px-4 py-3 text-xs text-white/70 sm:px-6">
+              <div className="flex-1 bg-white/5 rounded px-3 py-1 text-[11px] font-[family-name:var(--font-dm-mono)] text-white/28">
                 {study.heroScreenCaption}
-              </p>
-            </div>
-          ) : (
-            <div className="rounded-lg sm:rounded-xl overflow-hidden border border-white/12 shadow-[0_32px_80px_rgba(0,0,0,0.5),0_8px_32px_rgba(0,0,0,0.3)] mb-10 sm:mb-16">
-              <div className="bg-[rgba(12,18,40,0.97)] px-4 py-2.5 flex items-center gap-2.5 border-b border-white/6">
-                <div className="flex gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#FF5F57]" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#FEBC2E]" />
-                  <div className="w-2.5 h-2.5 rounded-full bg-[#28C840]" />
-                </div>
-                <div className="flex-1 bg-white/5 rounded px-3 py-1 text-[11px] font-[family-name:var(--font-dm-mono)] text-white/28">
-                  {study.heroScreenCaption}
-                </div>
-              </div>
-              <div
-                className="relative w-full"
-                style={{ aspectRatio: caseStudyImageAspect }}
-              >
-                <Image
-                  src={study.heroScreenUrl}
-                  alt={study.heroScreenCaption}
-                  fill
-                  className="object-contain bg-[#0B1830]"
-                  sizes="(max-width: 768px) 100vw, 1200px"
-                  priority
-                />
               </div>
             </div>
-          )}
+            <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
+              <Image
+                src={study.heroScreenUrl}
+                alt={study.heroScreenCaption}
+                fill
+                className="object-contain bg-[#0B1830]"
+                sizes="(max-width: 768px) 100vw, 1200px"
+                priority
+              />
+            </div>
+          </div>
         </div>
       </section>
 
@@ -358,7 +316,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                       <div className="border-t border-[var(--border)] mb-4">
                         {pair.deltaBefore.map((d, j) => (
                           <div key={j} className="flex items-start gap-2.5 text-[14px] text-[var(--ink2)] leading-[1.6] py-2 border-b border-[var(--border)]">
-                            <span className="shrink-0 mt-px w-[18px] text-[15px]" style={{ color: "#C0392B" }}>×</span>
+                            <X className="mt-[3px] size-[18px] shrink-0" style={{ color: "#C0392B" }} aria-hidden="true" />
                             {d.text}
                           </div>
                         ))}
@@ -400,7 +358,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                       <div className="border-t border-[var(--border)] mt-4">
                         {pair.deltaAfter.map((d, j) => (
                           <div key={j} className="flex items-start gap-2.5 text-[14px] text-[var(--ink2)] leading-[1.6] py-2 border-b border-[var(--border)]">
-                            <span className="shrink-0 mt-px w-[18px] text-[15px]" style={{ color: "#1A6B35" }}>✓</span>
+                            <Check className="mt-[3px] size-[18px] shrink-0" style={{ color: "#1A6B35" }} aria-hidden="true" />
                             {d.text}
                           </div>
                         ))}
@@ -542,10 +500,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                         </span>
                       </div>
                     )}
-                    <div
-                      className={`relative w-full ${activeTabData.imageAspectRatio ? "mx-auto max-w-[390px]" : ""}`}
-                      style={{ aspectRatio: activeTabData.imageAspectRatio ?? caseStudyImageAspect }}
-                    >
+                    <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
                       <Image
                         src={activeTabData.image}
                         alt={activeTabData.alt}
@@ -572,7 +527,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                         {activeTab === "solution" ? "ccsplus.ual.com / trade-center / trips" : "Category Summary — March bid period"}
                       </span>
                     </div>
-                    <div className="relative w-full" style={{ aspectRatio: caseStudyImageAspect }}>
+                    <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
                       <Image
                         src={activeTab === "solution" ? "/images/trips tab.png" : "/images/category summary.png"}
                         alt={activeTab === "solution" ? "CCS+ Trade Board" : "Category Summary Gantt"}
@@ -714,7 +669,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                         </div>
                       )}
                       {dec.image ? (
-                        <div className="relative w-full" style={{ aspectRatio: caseStudyImageAspect }}>
+                        <div className="relative w-full" style={{ aspectRatio: "16/9" }}>
                           <Image
                             src={dec.image}
                             alt={dec.imageAlt ?? dec.title}

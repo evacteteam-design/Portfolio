@@ -3,6 +3,19 @@
 import { useMemo, useState, type ReactNode } from "react";
 import Link from "next/link";
 import {
+  ArrowDown,
+  ArrowLeft,
+  BellRing,
+  Compass,
+  Ellipsis,
+  Layers,
+  LayoutGrid,
+  MousePointerClick,
+  Palette,
+  Table2,
+  TextCursorInput,
+} from "lucide-react";
+import {
   Accordion,
   Alert,
   Avatar,
@@ -39,14 +52,14 @@ import {
 } from "@akhil-vanga/design-system";
 
 const sections = [
-  { id: "foundations", label: "Foundations", icon: "◈" },
-  { id: "actions", label: "Actions", icon: "↗" },
-  { id: "forms", label: "Forms & inputs", icon: "▤" },
-  { id: "feedback", label: "Feedback", icon: "◉" },
-  { id: "overlays", label: "Overlays", icon: "▣" },
-  { id: "navigation", label: "Navigation", icon: "⇥" },
-  { id: "data", label: "Data display", icon: "▦" },
-  { id: "layout", label: "Layout", icon: "⊞" },
+  { id: "foundations", label: "Foundations", icon: Palette },
+  { id: "actions", label: "Actions", icon: MousePointerClick },
+  { id: "forms", label: "Forms & inputs", icon: TextCursorInput },
+  { id: "feedback", label: "Feedback", icon: BellRing },
+  { id: "overlays", label: "Overlays", icon: Layers },
+  { id: "navigation", label: "Navigation", icon: Compass },
+  { id: "data", label: "Data display", icon: Table2 },
+  { id: "layout", label: "Layout", icon: LayoutGrid },
 ];
 
 const searchableComponents = [
@@ -56,7 +69,7 @@ const searchableComponents = [
   { name: "Icon button", section: "actions", terms: "icon only button action accessible label" },
   { name: "Text field", section: "forms", terms: "input text email password field label validation" },
   { name: "Text area", section: "forms", terms: "textarea multiline form" },
-  { name: "Date field", section: "forms", terms: "date picker calendar date input" },
+  { name: "Date field", section: "forms", terms: "date picker calendar date input datepicker" },
   { name: "Range slider", section: "forms", terms: "slider range volume control" },
   { name: "File dropzone", section: "forms", terms: "upload file drag drop attachment" },
   { name: "Select", section: "forms", terms: "dropdown select option form" },
@@ -237,6 +250,7 @@ export function DesignSystemCatalog() {
   const [buttonDisabled, setButtonDisabled] = useState(false);
   const [buttonLoading, setButtonLoading] = useState(false);
   const [rangeValue, setRangeValue] = useState(68);
+  const [launchDate, setLaunchDate] = useState("2026-12-04");
   const normalizedQuery = query.trim().toLowerCase();
   const visibleComponents = useMemo(
     () => searchableComponents.filter((component) => `${component.name} ${component.terms}`.toLowerCase().includes(normalizedQuery)),
@@ -311,7 +325,7 @@ export function DesignSystemCatalog() {
         <div className="pointer-events-none absolute inset-0 opacity-[0.14]" aria-hidden="true" style={{ backgroundImage: "radial-gradient(circle, #79c5ff 1px, transparent 1px)", backgroundSize: "22px 22px" }} />
         <div className="relative mx-auto max-w-[var(--max-w)]">
           <Link href="/" className="mb-8 inline-flex items-center gap-2 text-[11px] text-white/60 transition hover:text-white">
-            <span aria-hidden="true">←</span> Back to portfolio
+            <ArrowLeft className="size-3.5" aria-hidden="true" /> Back to portfolio
           </Link>
           <div className="flex flex-col justify-between gap-8 lg:flex-row lg:items-end">
             <div className="max-w-3xl">
@@ -347,14 +361,14 @@ export function DesignSystemCatalog() {
             />
           </label>
           <nav aria-label="Design system sections" className="grid grid-cols-2 gap-1 sm:grid-cols-4 lg:grid-cols-1">
-            {sections.map((section) => (
+            {sections.map(({ icon: Icon, id, label }) => (
               <a
-                key={section.id}
-                href={`#${section.id}`}
+                key={id}
+                href={`#${id}`}
                 className="flex items-center gap-2 rounded-lg px-3 py-2 text-[11px] font-medium text-[var(--ink2)] transition hover:bg-white hover:text-[var(--accent)]"
               >
-                <span className="text-[var(--accent-light)]" aria-hidden="true">{section.icon}</span>
-                {section.label}
+                <Icon className="size-3.5 shrink-0 text-[var(--accent-light)]" aria-hidden="true" />
+                {label}
               </a>
             ))}
           </nav>
@@ -376,7 +390,7 @@ export function DesignSystemCatalog() {
                 </p>
               </div>
               <a href="#getting-started" className="inline-flex shrink-0 items-center justify-center rounded-lg bg-[var(--accent)] px-4 py-2.5 text-[11px] font-semibold text-white transition hover:bg-[var(--accent-dark)]">
-                Get started <span className="ml-2" aria-hidden="true">↘</span>
+                Get started <ArrowDown className="ml-2 size-3.5" aria-hidden="true" />
               </a>
             </div>
           </section>
@@ -438,8 +452,8 @@ export function DesignSystemCatalog() {
               {show("Badge") && <Showcase id="badge" title="Badge" tags="tag chip status" description="Compact status, category, or count labels." code={`import { Badge } from "@akhil-vanga/design-system";\n\n<Badge tone="success">Published</Badge>\n<Badge tone="warning">In review</Badge>`}>
                 <Badge tone="brand">New</Badge><Badge tone="success">Published</Badge><Badge tone="warning">In review</Badge><Badge tone="danger">Blocked</Badge>
               </Showcase>}
-              {show("Icon button") && <Showcase id="icon-button" title="Icon button" tags="icon only button action accessible label" description="Compact icon-only action with a required accessible label." code={`import { IconButton } from "@akhil-vanga/design-system";\n\n<IconButton label="More options">···</IconButton>`}>
-                <IconButton label="More options">···</IconButton><span className="text-[11px] text-[var(--ink2)]">Every icon button requires an accessible name.</span>
+              {show("Icon button") && <Showcase id="icon-button" title="Icon button" tags="icon only button action accessible label" description="Compact icon-only action with a required accessible label." code={`import { IconButton } from "@akhil-vanga/design-system";\nimport { Ellipsis } from "lucide-react";\n\n<IconButton label="More options"><Ellipsis size={18} aria-hidden="true" /></IconButton>`}>
+                <IconButton label="More options"><Ellipsis size={18} aria-hidden="true" /></IconButton><span className="text-[11px] text-[var(--ink2)]">Every icon button requires an accessible name.</span>
               </Showcase>}
               {show("Avatar") && <Showcase id="avatar" title="Avatar" tags="profile image initials" description="Image or generated initials with a useful accessible name." code={`import { Avatar } from "@akhil-vanga/design-system";\n\n<Avatar name="Akhil Vanga" size="md" />`}>
                 <Avatar name="Akhil Vanga" size="sm" /><Avatar name="Maya Chen" /><Avatar name="Jordan Lee" size="lg" />
@@ -457,8 +471,8 @@ export function DesignSystemCatalog() {
               {show("Text area") && <Showcase id="text-area" title="Text area" tags="textarea multiline form" description="Multiline input that keeps the same labeling and validation contract." code={`import { TextArea } from "@akhil-vanga/design-system";\n\n<TextArea label="Project notes" placeholder="Share a few details…" rows={3} />`}>
                 <div className="w-full"><TextArea label="Project notes" placeholder="Share a few details…" rows={2} /></div>
               </Showcase>}
-              {show("Date field") && <Showcase id="date-field" title="Date field" tags="date picker calendar date input" description="A native date control, styled consistently and accessible across input methods." code={`import { DateField } from "@akhil-vanga/design-system";\n\n<DateField label="Launch date" min="2026-01-01" />`}>
-                <div className="w-full max-w-sm"><DateField label="Launch date" min="2026-01-01" /></div>
+              {show("Date field") && <Showcase id="date-field" title="Date field" tags="date picker calendar date input" description="Type a date or pick one from a themed calendar. Supports full keyboard navigation, min and max limits, and a bottom sheet on mobile." code={`import { DateField } from "@akhil-vanga/design-system";\n\nconst [launchDate, setLaunchDate] = useState("2026-12-04");\n\n<DateField\n  label="Launch date"\n  value={launchDate}\n  onChange={setLaunchDate}\n  min="2026-01-01"\n  name="launchDate"\n/>`}>
+                <div className="w-full max-w-sm"><DateField label="Launch date" value={launchDate} onChange={setLaunchDate} min="2026-01-01" name="launchDate" hint="Dates before Jan 1, 2026 aren't available." /></div>
               </Showcase>}
               {show("Range slider") && <Showcase id="range-slider" title="Range slider" tags="slider range volume control" description="Controlled range input with a visible value and keyboard support." code={`import { RangeSlider } from "@akhil-vanga/design-system";\n\n<RangeSlider label="Volume" min={0} max={100} value={volume} onChange={setVolume} />`}>
                 <div className="w-full max-w-sm"><RangeSlider label="Prototyping progress" value={rangeValue} onChange={setRangeValue} /></div>

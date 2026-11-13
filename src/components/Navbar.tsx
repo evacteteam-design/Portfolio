@@ -33,7 +33,7 @@ export function Navbar() {
     { label: "Work", href: "/#work" },
     { label: "About", href: "/#about" },
     { label: "Design System", href: "/design-system" },
-    { label: "AI Lab", href: "/ai-lab" },
+    { label: "UX Architect", href: "/ux-architect" },
     { label: "Contact", href: "/#contact" },
   ];
 

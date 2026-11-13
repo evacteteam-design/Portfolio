@@ -23,7 +23,14 @@
 
 # misc
 .DS_Store
+Thumbs.db
 *.pem
+*.key
+*.p12
+*.pfx
+id_rsa*
+secrets*.json
+.npmrc
 .npm-cache/
 
 # debug
@@ -31,9 +38,22 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+*.log
+
+# tool caches and local editor or assistant state
+.eslintcache
+.turbo/
+.swc/
+.idea/
+.claude/
+.cursor/
+.copilot/
+.codex/
+.playwright-mcp/
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel

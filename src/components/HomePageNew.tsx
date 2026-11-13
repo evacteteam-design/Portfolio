@@ -2,6 +2,8 @@
 
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
+import Link from "next/link";
+import { ArrowUpDown, ArrowUpRight, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 import { ProjectCard } from "@/components/ProjectCard";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
@@ -252,6 +254,15 @@ export default function HomePage() {
                 >
                   Get in touch
                 </a>
+                <Link
+                  href="/ux-architect"
+                  className="inline-flex items-center gap-2 rounded-full border border-[var(--accent-light)]/60 bg-[var(--accent-light)]/15 px-5 py-3 text-[12px] font-semibold tracking-[0.04em] text-white transition-all duration-300 hover:bg-[var(--accent-light)]/25 sm:px-7 sm:py-3.5 sm:text-[13px]"
+                >
+                  Try the UX Architect
+                  <span className="rounded-full bg-[var(--accent-light)]/25 px-2 py-0.5 text-[9px] uppercase tracking-wider">
+                    AI
+                  </span>
+                </Link>
               </div>
             </div>
 
@@ -514,7 +525,7 @@ export default function HomePage() {
                   className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 text-[12px] font-semibold uppercase tracking-[0.08em] text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-[var(--accent-dark)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent)] sm:w-fit"
                 >
                   Explore the design system
-                  <span aria-hidden="true">↗</span>
+                  <ArrowUpRight className="size-4" aria-hidden="true" />
                 </a>
                 <div className="flex flex-wrap gap-2" aria-label="Design system highlights">
                   <span className="rounded-full border border-[var(--border)] bg-white/70 px-3 py-1.5 text-[11px] font-medium text-[var(--ink2)]">30 catalog entries</span>
@@ -556,7 +567,7 @@ export default function HomePage() {
 
                 <div className="mb-3 grid grid-cols-1 gap-2 sm:grid-cols-[minmax(0,1fr)_auto_auto]">
                   <div className="min-w-0 rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-[10px] text-[var(--ink3)] sm:text-[11px]">
-                    <span className="mr-2 text-[var(--accent)]" aria-hidden="true">⌕</span>Search people, roles, status…
+                    <Search className="mr-2 inline size-3.5 align-[-2px] text-[var(--accent)]" aria-hidden="true" />Search people, roles, status…
                   </div>
                   <span className="rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-[10px] text-[var(--ink2)]">Role&nbsp; · &nbsp;All roles</span>
                   <span className="rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-[10px] text-[var(--ink2)]">Columns&nbsp; 4/30</span>
@@ -567,8 +578,8 @@ export default function HomePage() {
                     <table className="w-full min-w-[480px] border-collapse text-left text-[10px] sm:text-[11px]">
                       <thead className="bg-[#EDF4FB] text-[9px] uppercase tracking-[0.08em] text-[var(--ink3)]">
                         <tr>
-                          <th scope="col" className="sticky left-0 z-10 bg-[#EDF4FB] px-3 py-2.5">Member ↕</th>
-                          <th scope="col" className="px-3 py-2.5">Role ↕</th>
+                          <th scope="col" className="sticky left-0 z-10                           bg-[#EDF4FB] px-3 py-2.5">Member<ArrowUpDown className="ml-1 inline size-3 align-[-1px]" aria-hidden="true" /></th>
+                                                    <th scope="col" className="px-3 py-2.5">Role<ArrowUpDown className="ml-1 inline size-3 align-[-1px]" aria-hidden="true" /></th>
                           <th scope="col" className="px-3 py-2.5">Status</th>
                           <th scope="col" className="px-3 py-2.5">Department</th>
                         </tr>
@@ -599,10 +610,10 @@ export default function HomePage() {
                     <span>1–10 of 100 results</span>
                     <span className="inline-flex items-center gap-1.5">
                       <span className="rounded-md border border-[var(--border)] px-2 py-1">Rows&nbsp; 10</span>
-                      <span className="rounded-md border border-[var(--border)] px-2 py-1" aria-label="Previous page">←</span>
+                      <span className="grid place-items-center rounded-md border border-[var(--border)] px-2 py-1" aria-label="Previous page"><ChevronLeft className="size-3" aria-hidden="true" /></span>
                       <span className="rounded-md bg-[var(--accent)] px-2 py-1 font-semibold text-white">1</span>
                       <span className="rounded-md border border-[var(--border)] px-2 py-1">2</span>
-                      <span className="rounded-md border border-[var(--border)] px-2 py-1" aria-label="Next page">→</span>
+                      <span className="grid place-items-center rounded-md border border-[var(--border)] px-2 py-1" aria-label="Next page"><ChevronRight className="size-3" aria-hidden="true" /></span>
                     </span>
                   </div>
                 </div>

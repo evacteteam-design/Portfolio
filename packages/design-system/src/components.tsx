@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowDown, ArrowUp, ArrowUpDown, ChevronLeft, ChevronRight, Inbox, Upload, X } from "lucide-react";
 import {
   useEffect,
   useId,
@@ -110,12 +111,6 @@ export function TextField({ label, hint, error, id, className = "", ...props }: 
   );
 }
 
-export type DateFieldProps = Omit<TextFieldProps, "type">;
-
-export function DateField(props: DateFieldProps) {
-  return <TextField {...props} type="date" />;
-}
-
 export function RangeSlider({
   label,
   value,
@@ -185,7 +180,7 @@ export function FileDropzone({
             onFilesSelected?.(files);
           }}
         />
-        <span className="av-file-dropzone__icon" aria-hidden="true">↑</span>
+        <span className="av-file-dropzone__icon" aria-hidden="true"><Upload size="1em" /></span>
         <strong>{label}</strong>
         <span className="av-hint">{fileNames.length ? fileNames.join(", ") : hint}</span>
       </label>
@@ -591,7 +586,7 @@ export function Modal({
       <div className="av-dialog__header">
         <strong id={`${dialogRef}-title`}>{title}</strong>
         <button className="av-button av-button--ghost av-button--sm" type="button" onClick={onClose} aria-label="Close dialog">
-          ✕
+                  <X size={16} aria-hidden="true" />
         </button>
       </div>
       <div className="av-dialog__body">{children}</div>
@@ -637,7 +632,7 @@ export function Pagination({
   return (
     <nav className="av-pagination" aria-label={label}>
       <button className="av-pagination__edge" type="button" aria-label="Go to previous page" disabled={current === 1} onClick={() => onPageChange(current - 1)}>
-        <span aria-hidden="true">←</span>
+        <ChevronLeft size="1.25em" aria-hidden="true" />
       </button>
       {pageItems.map((item) =>
         typeof item === "number" ? (
@@ -655,7 +650,7 @@ export function Pagination({
         ),
       )}
       <button className="av-pagination__edge" type="button" aria-label="Go to next page" disabled={current === count} onClick={() => onPageChange(current + 1)}>
-        <span aria-hidden="true">→</span>
+        <ChevronRight size="1.25em" aria-hidden="true" />
       </button>
     </nav>
   );
@@ -874,7 +869,7 @@ export function DataTable<Row extends { id: string | number }>({
                       <button className="av-table__sort" type="button" onClick={() => toggleSort(column.key)}>
                         {column.header}
                         <span className="av-table__sort-indicator" aria-hidden="true">
-                          {activeSort ? (sortDirection === "ascending" ? "↑" : "↓") : "↕"}
+                          {activeSort ? (sortDirection === "ascending" ? <ArrowUp size="1em" /> : <ArrowDown size="1em" />) : <ArrowUpDown size="1em" />}
                         </span>
                         <span className="av-sr-only">
                           {activeSort ? `Sorted ${sortDirection}` : "Sort"}
@@ -1103,7 +1098,12 @@ export function EmptyState({
 }) {
   return (
     <div style={{ display: "grid", minHeight: "10rem", placeContent: "center", justifyItems: "center", gap: ".5rem", padding: "1.5rem", textAlign: "center" }}>
-      <span aria-hidden="true" style={{ fontSize: "1.5rem" }}>◇</span>
+      <span
+        aria-hidden="true"
+        style={{ display: "grid", width: "3rem", height: "3rem", placeItems: "center", borderRadius: "50%", background: "var(--av-color-surface)", color: "var(--av-color-brand)" }}
+      >
+        <Inbox size={22} />
+      </span>
       <strong>{title}</strong>
       <p style={{ margin: 0, color: "var(--av-color-muted)" }}>{description}</p>
       {action}
