@@ -9,11 +9,11 @@ export function ProjectCard({ project, index }: { project: CaseStudy; index: num
     <Reveal delay={index + 1} direction="up" className="h-full">
       <Link
         href={`/work/${project.slug}`}
-        className="group relative h-full flex flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--white)] transition-all duration-500 hover:shadow-2xl hover:shadow-[var(--accent-light)]/10 hover:-translate-y-1"
+        className="motion-card group relative h-full flex flex-col overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--white)] transition-all duration-500 hover:shadow-2xl hover:shadow-[var(--accent-light)]/10 hover:-translate-y-1"
       >
         {/* Preview image area */}
         <div
-          className="relative h-[240px] sm:h-[340px] md:h-[420px] overflow-hidden"
+          className="motion-card__media relative h-[240px] sm:h-[340px] md:h-[420px] overflow-hidden"
           style={{ background: project.accentDark }}
         >
           {/* Dot grid texture */}
@@ -24,6 +24,7 @@ export function ProjectCard({ project, index }: { project: CaseStudy; index: num
               backgroundSize: "24px 24px",
             }}
           />
+          <div className="motion-card__sheen" aria-hidden="true" />
 
           {/* Floating screenshot mock */}
           <div className="absolute inset-4 sm:inset-8 md:inset-12 rounded-lg border border-white/10 bg-white/5 backdrop-blur-sm flex items-center justify-center overflow-hidden transition-transform duration-700 group-hover:scale-[1.02]">

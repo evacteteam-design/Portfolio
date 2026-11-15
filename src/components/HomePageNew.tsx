@@ -9,6 +9,7 @@ import { ProjectCard } from "@/components/ProjectCard";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
 import { FAQ } from "@/components/FAQ";
 import { caseStudies } from "@/content/caseStudies";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 /* ─── Capabilities data matching Framer ─── */
 const capabilities = [
@@ -70,8 +71,11 @@ export default function HomePage() {
   const particlesRef = useRef<TrailParticle[]>([]);
   const moveCountRef = useRef(0);
   const rafRef = useRef<number>(0);
+  const reduceMotion = usePrefersReducedMotion();
 
   useEffect(() => {
+    if (reduceMotion) return;
+
     const handleMove = (e: MouseEvent) => {
       if (!heroRef.current) return;
       const rect = heroRef.current.getBoundingClientRect();
@@ -155,7 +159,7 @@ export default function HomePage() {
       window.removeEventListener("scroll", handleScroll);
       cancelAnimationFrame(rafRef.current);
     };
-  }, []);
+  }, [reduceMotion]);
 
   return (
     <>
@@ -171,7 +175,7 @@ export default function HomePage() {
         <div
           className="absolute inset-0 will-change-transform"
           style={{
-            transform: `translateY(${scrollY * 0.35}px) scale(1.12)`,
+            transform: reduceMotion ? "scale(1.12)" : `translateY(${scrollY * 0.35}px) scale(1.12)`,
             transition: "transform 0.05s linear",
           }}
         >
@@ -179,16 +183,21 @@ export default function HomePage() {
             src="/images/hero-bg.png"
             alt="Hero background"
             fill
-            className="object-cover"
+            className="hero-image-drift object-cover"
             priority
             quality={90}
           />
         </div>
 
+        <div className="hero-ambient hero-ambient--one" aria-hidden="true" />
+        <div className="hero-ambient hero-ambient--two" aria-hidden="true" />
+
         {/* Cinematic overlay: dark left where text lives, fades right so landscape shows */}
         <div className="absolute inset-0" style={{ background: `linear-gradient(105deg, rgba(5,8,18,0.88) 0%, rgba(5,8,18,0.72) 38%, rgba(5,8,18,0.30) 62%, rgba(5,8,18,0.10) 100%)` }} />
         {/* Bottom vignette — taller so stats in mid-section are covered */}
         <div className="absolute inset-0" style={{ background: `linear-gradient(to top, rgba(5,8,18,0.88) 0%, rgba(5,8,18,0.60) 28%, rgba(5,8,18,0.20) 50%, transparent 65%)` }} />
+        <div className="hero-light-source" aria-hidden="true" />
+        <div className="hero-light-rays" aria-hidden="true" />
 
         {/* Mouse-follow glow */}
         {/* Water trail canvas */}
@@ -288,9 +297,9 @@ export default function HomePage() {
         </div>
 
         {/* Scroll indicator */}
-        <div className="hero-anim-4 absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
+        <div className="hero-anim-4 hero-scroll-indicator absolute bottom-10 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2">
           <span className="text-[9px] tracking-[0.2em] uppercase text-white/30">Scroll</span>
-          <div className="w-px h-10 bg-gradient-to-b from-white/25 to-transparent" />
+          <div className="hero-scroll-line w-px h-10 bg-gradient-to-b from-white/25 to-transparent" />
         </div>
       </section>
 

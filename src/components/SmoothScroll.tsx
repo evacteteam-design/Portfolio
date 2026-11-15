@@ -10,6 +10,8 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
   // Fires synchronously BEFORE the browser paints — guarantees scroll
   // is at 0 before the user ever sees the new page.
   useLayoutEffect(() => {
+    if (window.location.hash) return;
+
     window.scrollTo(0, 0);
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
@@ -55,6 +57,21 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
 
     document.addEventListener("click", handleAnchorClick);
 
+    const hash = window.location.pathname === "/" ? window.location.hash : "";
+    let target: Element | null = null;
+    try {
+      target = hash ? document.querySelector(hash) : null;
+    } catch {
+      target = null;
+    }
+
+    let hashFrameId: number | undefined;
+    if (target) {
+      hashFrameId = requestAnimationFrame(() => {
+        lenis.scrollTo(target as HTMLElement, { offset: -80, immediate: true });
+      });
+    }
+
     let rafId: number;
     function raf(time: number) {
       lenis.raf(time);
@@ -64,6 +81,7 @@ export function SmoothScroll({ children }: { children: React.ReactNode }) {
 
     return () => {
       cancelAnimationFrame(rafId);
+      if (hashFrameId !== undefined) cancelAnimationFrame(hashFrameId);
       document.removeEventListener("click", handleAnchorClick);
       lenis.destroy();
     };
