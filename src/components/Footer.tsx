@@ -45,12 +45,12 @@ export function Footer() {
           <div className="text-[13px] text-[var(--ink3)] md:text-right leading-relaxed">
             <a
               href="mailto:akhil.vang@gmail.com"
-              className="text-[var(--accent)] hover:underline"
+              className="inline-flex min-h-6 items-center text-[var(--accent)] hover:underline"
             >
               akhil.vang@gmail.com
             </a>
             <br />
-            <a href="tel:+13413457337" className="hover:underline">
+            <a href="tel:+13413457337" className="inline-flex min-h-6 items-center hover:underline">
               +1 (341) 345-7337
             </a>
           </div>

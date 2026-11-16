@@ -582,7 +582,7 @@ export default function HomePage() {
                   Explore the design system
                   <ArrowUpRight className="size-4" aria-hidden="true" />
                 </a>
-                <div className="flex flex-wrap gap-2" aria-label="Design system highlights">
+                <div className="flex flex-wrap gap-2" role="group" aria-label="Design system highlights">
                   <span className="rounded-full border border-[var(--border)] bg-white/70 px-3 py-1.5 text-[11px] font-medium text-[var(--ink2)]">30 catalog entries</span>
                   <span className="rounded-full border border-[var(--border)] bg-white/70 px-3 py-1.5 text-[11px] font-medium text-[var(--ink2)]">React + TypeScript</span>
                   <span className="rounded-full border border-[var(--border)] bg-white/70 px-3 py-1.5 text-[11px] font-medium text-[var(--ink2)]">MIT licensed</span>
@@ -594,6 +594,7 @@ export default function HomePage() {
           <Reveal delay={2} direction="scale" className="min-w-0">
             <div
               className="relative min-w-0 overflow-hidden rounded-2xl border border-[var(--border)] bg-white shadow-[0_28px_90px_rgba(22,42,66,0.14)]"
+              role="figure"
               aria-label="Preview of the reusable design system data table"
             >
               <div className="flex items-center gap-3 border-b border-[var(--border)] bg-white px-4 py-3 sm:px-5">
@@ -665,10 +666,10 @@ export default function HomePage() {
                     <span>1–10 of 100 results</span>
                     <span className="inline-flex items-center gap-1.5">
                       <span className="rounded-md border border-[var(--border)] px-2 py-1">Rows&nbsp; 10</span>
-                      <span className="grid place-items-center rounded-md border border-[var(--border)] px-2 py-1" aria-label="Previous page"><ChevronLeft className="size-3" aria-hidden="true" /></span>
+                      <span className="grid place-items-center rounded-md border border-[var(--border)] px-2 py-1"><ChevronLeft className="size-3" aria-hidden="true" /><span className="sr-only">Previous page</span></span>
                       <span className="rounded-md bg-[var(--accent)] px-2 py-1 font-semibold text-white">1</span>
                       <span className="rounded-md border border-[var(--border)] px-2 py-1">2</span>
-                      <span className="grid place-items-center rounded-md border border-[var(--border)] px-2 py-1" aria-label="Next page"><ChevronRight className="size-3" aria-hidden="true" /></span>
+                      <span className="grid place-items-center rounded-md border border-[var(--border)] px-2 py-1"><ChevronRight className="size-3" aria-hidden="true" /><span className="sr-only">Next page</span></span>
                     </span>
                   </div>
                 </div>

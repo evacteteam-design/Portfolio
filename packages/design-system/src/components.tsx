@@ -778,7 +778,7 @@ export function DataTable<Row extends { id: string | number }>({
               />
             </label>
           )}
-          <div className="av-data-table__filters" aria-label="Table filters">
+          <div className="av-data-table__filters" role="group" aria-label="Table filters">
             {columns.filter((column) => column.filterOptions?.length).map((column) => (
               <label className="av-field" key={String(column.key)}>
                 <span className="av-label">{column.header}</span>
@@ -855,7 +855,7 @@ export function DataTable<Row extends { id: string | number }>({
           )}
         </div>
       )}
-      <div className="av-data-table__scroll" tabIndex={0} aria-label={`${caption}: scroll horizontally to see all columns`}>
+      <div className="av-data-table__scroll" role="region" tabIndex={0} aria-label={`${caption}: scroll horizontally to see all columns`}>
         <table className="av-table" {...props}>
           <caption className="av-sr-only">{caption}</caption>
           <thead>
