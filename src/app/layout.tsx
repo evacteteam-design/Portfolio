@@ -5,6 +5,7 @@ import "@akhil-vanga/design-system/styles.css";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import { SmoothScroll } from "@/components/SmoothScroll";
+import { SITE_DESCRIPTION, SITE_TITLE, SITE_URL } from "@/lib/seo";
 
 // Baloo 2 — headings, display, large type
 const baloo2 = Baloo_2({
@@ -24,15 +25,28 @@ const dmMono = DM_Mono({
   variable: "--font-dm-mono",
   subsets: ["latin"],
   weight: ["400", "500"],
+  preload: false,
 });
 
 export const metadata: Metadata = {
-  title: "Akhil Vanga — UX/UI Designer",
-  description: "AI-First Product Designer crafting enterprise experiences that users trust.",
-  openGraph: {
-    title: "Akhil Vanga — UX/UI Designer",
-    description: "AI-First Product Designer crafting enterprise experiences that users trust.",
-    type: "website",
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: SITE_TITLE,
+    template: "%s | Akhil Vanga",
+  },
+  description: SITE_DESCRIPTION,
+  authors: [{ name: "Akhil Vanga", url: SITE_URL }],
+  creator: "Akhil Vanga",
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      "max-image-preview": "large",
+      "max-snippet": -1,
+      "max-video-preview": -1,
+    },
   },
 };
 
@@ -55,6 +69,9 @@ export default function RootLayout({
       <head>
         {/* Disable browser scroll restoration before any JS runs */}
         <script dangerouslySetInnerHTML={{ __html: 'history.scrollRestoration="manual"' }} />
+        <noscript>
+          <style>{`.reveal, .reveal-left, .reveal-right, .reveal-scale { opacity: 1 !important; transform: none !important; }`}</style>
+        </noscript>
       </head>
       <body>
         <SmoothScroll>

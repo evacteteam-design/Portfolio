@@ -548,8 +548,8 @@ export function DesignSystemCatalog() {
                 <div className="w-full"><Tabs tabs={[{ label: "Overview", content: <p className="text-[12px] text-[var(--ink2)]">Your workspace at a glance.</p> }, { label: "Activity", content: <p className="text-[12px] text-[var(--ink2)]">Recent team activity appears here.</p> }, { label: "Settings", content: <p className="text-[12px] text-[var(--ink2)]">Manage project preferences.</p> }]} /></div>
               </Showcase>}
               <div className="grid gap-4 sm:grid-cols-2">
-                {show("Breadcrumbs") && <Showcase id="breadcrumbs" title="Breadcrumbs" tags="navigation path" description="Expose the current location and navigable parent hierarchy." code={`import { Breadcrumbs } from "@akhil-vanga/design-system";\n\n<Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Projects" }, { label: "Apollo" }]} />`}>
-                  <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Projects", href: "/projects" }, { label: "Apollo" }]} />
+                {show("Breadcrumbs") && <Showcase id="breadcrumbs" title="Breadcrumbs" tags="navigation path" description="Expose the current location and navigable parent hierarchy." code={`import { Breadcrumbs } from "@akhil-vanga/design-system";\n\n<Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Design System", href: "/design-system" }, { label: "Breadcrumbs" }]} />`}>
+                  <Breadcrumbs items={[{ label: "Home", href: "/" }, { label: "Design System", href: "/design-system" }, { label: "Breadcrumbs" }]} />
                 </Showcase>}
                 {show("Pagination") && <Showcase id="pagination" title="Pagination" tags="pages next previous" description="Compact page windows, clear boundaries, and controlled navigation." code={`import { Pagination } from "@akhil-vanga/design-system";\n\n<Pagination page={page} pageCount={18} onPageChange={setPage} />`}>
                   <div className="w-full space-y-4">

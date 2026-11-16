@@ -39,6 +39,14 @@ const nextConfig: NextConfig = {
   poweredByHeader: false,
   // Next 16.4+ otherwise writes an AGENTS.md into the repo on every `next dev`.
   agentRules: false,
+  async redirects() {
+    return [{
+      source: "/:path*",
+      has: [{ type: "host", value: "akhilvanga.com" }],
+      destination: "https://www.akhilvanga.com/:path*",
+      permanent: true,
+    }];
+  },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

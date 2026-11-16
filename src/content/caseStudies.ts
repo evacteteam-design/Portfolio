@@ -10,6 +10,7 @@ export interface CaseStudy {
   duration: string;
   impactHeadline: string;
   lede: string;
+  seoDescription: string;
   tags: string[];
   accentColor: string;
   accentDark: string;
@@ -123,6 +124,7 @@ export const caseStudies: CaseStudy[] = [
   {
     slug: "ccs-trade-center",
     title: "CCS+ Trade Center",
+    seoDescription: "How Akhil Vanga redesigned United Airlines' pilot scheduling experience, reducing friction and making trip trading clearer for more than 10,000 crew members.",
     subtitle: "Redesigning how 10,000 pilots schedule their lives",
     client: "United Airlines",
     year: "2023–2025",
@@ -398,6 +400,7 @@ export const caseStudies: CaseStudy[] = [
   {
     slug: "axiom-ci",
     title: "Axiom CI",
+    seoDescription: "Explore Akhil Vanga's UX case study for Axiom CI: AI-assisted contract and invoice review built around evidence, confidence, and clear commercial decisions.",
     subtitle: "AI-assisted contract intelligence for trustworthy commercial review and recovery",
     client: "Enterprise procurement workflow",
     year: "2025",

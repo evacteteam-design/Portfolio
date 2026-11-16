@@ -2,6 +2,7 @@ import { notFound } from "next/navigation";
 import { caseStudies, getCaseStudy } from "@/content/caseStudies";
 import { CaseStudyPage } from "@/components/CaseStudyPage";
 import type { Metadata } from "next";
+import { createPageMetadata } from "@/lib/seo";
 
 interface Props {
   params: Promise<{ slug: string }>;
@@ -14,11 +15,12 @@ export async function generateStaticParams() {
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
   const cs = getCaseStudy(slug);
-  if (!cs) return {};
-  return {
-    title: `${cs.title} — Akhil Vanga`,
-    description: cs.lede,
-  };
+  if (!cs) notFound();
+  return createPageMetadata({
+    title: `${cs.title} - UX Case Study`,
+    description: cs.seoDescription,
+    path: `/work/${cs.slug}`,
+  });
 }
 
 export default async function WorkDetailPage({ params }: Props) {

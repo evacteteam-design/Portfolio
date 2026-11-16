@@ -64,9 +64,9 @@ interface TrailParticle {
 }
 
 export default function HomePage() {
-  const [scrollY, setScrollY] = useState(0);
   const [activeCapability, setActiveCapability] = useState(0);
   const heroRef = useRef<HTMLElement>(null);
+  const heroBackgroundRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const particlesRef = useRef<TrailParticle[]>([]);
   const moveCountRef = useRef(0);
@@ -75,10 +75,16 @@ export default function HomePage() {
 
   useEffect(() => {
     if (reduceMotion) return;
+    const hero = heroRef.current;
+    const background = heroBackgroundRef.current;
+    if (!hero || !background) return;
+    let heroVisible = true;
+    let scrollFrame = 0;
+    let lastScroll = -1;
 
-    const handleMove = (e: MouseEvent) => {
-      if (!heroRef.current) return;
-      const rect = heroRef.current.getBoundingClientRect();
+    const handleMove = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse" || !heroVisible || document.hidden) return;
+      const rect = hero.getBoundingClientRect();
       // Only trail while mouse is inside the hero
       if (e.clientY > rect.bottom || e.clientY < rect.top) return;
       const x = e.clientX - rect.left;
@@ -111,9 +117,11 @@ export default function HomePage() {
       if (particlesRef.current.length > 150) {
         particlesRef.current = particlesRef.current.slice(-150);
       }
+      if (!rafRef.current) rafRef.current = requestAnimationFrame(drawCanvas);
     };
 
     const drawCanvas = () => {
+      rafRef.current = 0;
       const canvas = canvasRef.current;
       if (canvas) {
         if (canvas.width !== canvas.offsetWidth || canvas.height !== canvas.offsetHeight) {
@@ -147,17 +155,48 @@ export default function HomePage() {
           }
         }
       }
-      rafRef.current = requestAnimationFrame(drawCanvas);
+      if (particlesRef.current.length > 0) {
+        rafRef.current = requestAnimationFrame(drawCanvas);
+      }
     };
 
-    const handleScroll = () => setScrollY(window.scrollY);
-    window.addEventListener("mousemove", handleMove);
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    rafRef.current = requestAnimationFrame(drawCanvas);
-    return () => {
-      window.removeEventListener("mousemove", handleMove);
-      window.removeEventListener("scroll", handleScroll);
+    const stopTrail = () => {
       cancelAnimationFrame(rafRef.current);
+      rafRef.current = 0;
+      particlesRef.current = [];
+      const canvas = canvasRef.current;
+      canvas?.getContext("2d")?.clearRect(0, 0, canvas.width, canvas.height);
+    };
+    const updateParallax = () => {
+      scrollFrame = 0;
+      const scroll = Math.min(window.scrollY, hero.offsetHeight);
+      if (scroll === lastScroll) return;
+      lastScroll = scroll;
+      background.style.transform = `translateY(${scroll * 0.35}px) scale(1.12)`;
+    };
+    const handleScroll = () => {
+      if (!scrollFrame) scrollFrame = requestAnimationFrame(updateParallax);
+    };
+    const handleVisibility = () => {
+      if (document.hidden) stopTrail();
+    };
+    const observer = new IntersectionObserver(([entry]) => {
+      heroVisible = entry.isIntersecting;
+      if (!heroVisible) stopTrail();
+    });
+    observer.observe(hero);
+    hero.addEventListener("pointermove", handleMove);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    document.addEventListener("visibilitychange", handleVisibility);
+    updateParallax();
+    return () => {
+      observer.disconnect();
+      hero.removeEventListener("pointermove", handleMove);
+      window.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("visibilitychange", handleVisibility);
+      cancelAnimationFrame(scrollFrame);
+      stopTrail();
+      background.style.transform = "scale(1.12)";
     };
   }, [reduceMotion]);
 
@@ -173,19 +212,21 @@ export default function HomePage() {
       >
         {/* Hero background image with parallax */}
         <div
+          ref={heroBackgroundRef}
           className="absolute inset-0 will-change-transform"
           style={{
-            transform: reduceMotion ? "scale(1.12)" : `translateY(${scrollY * 0.35}px) scale(1.12)`,
+            transform: "scale(1.12)",
             transition: "transform 0.05s linear",
           }}
         >
           <Image
             src="/images/hero-bg.png"
-            alt="Hero background"
+            alt=""
             fill
             className="hero-image-drift object-cover"
-            priority
-            quality={90}
+            sizes="100vw"
+            preload
+            quality={75}
           />
         </div>
 
@@ -203,6 +244,7 @@ export default function HomePage() {
         {/* Water trail canvas */}
         <canvas
           ref={canvasRef}
+          aria-hidden="true"
           className="absolute inset-0 w-full h-full pointer-events-none"
           style={{ zIndex: 1 }}
         />
@@ -243,7 +285,7 @@ export default function HomePage() {
                   Akhil Vanga
                 </p>
                 <p className="text-[12px] sm:text-[15px] font-light tracking-[0.06em] sm:tracking-[0.08em] uppercase" style={{ color: "var(--accent-light)" }}>
-                  AI-First Product Designer&nbsp;&nbsp;·&nbsp;&nbsp;US-Based
+                  AI-First Product Designer&nbsp;&nbsp;·&nbsp;&nbsp;Sacramento, CA
                 </p>
               </div>
 
@@ -310,9 +352,9 @@ export default function HomePage() {
         <div className="absolute top-0 right-0 w-[500px] h-[500px] rounded-full pointer-events-none opacity-30" style={{ background: 'radial-gradient(circle, rgba(75,163,227,0.15) 0%, transparent 70%)' }} />
         <div className="max-w-[var(--max-w)] mx-auto relative z-10">
           <Reveal>
-            <p className="text-[11px] font-semibold tracking-[0.14em] uppercase text-[var(--accent-light)] mb-4">
+            <h2 className="text-[11px] font-semibold tracking-[0.14em] uppercase text-[var(--accent-light)] mb-4">
               What I Can Do For You
-            </p>
+            </h2>
           </Reveal>
 
           <Reveal delay={1}>
@@ -399,6 +441,7 @@ export default function HomePage() {
 
               <Reveal delay={2}>
                 <p className="text-[16px] text-[var(--ink2)] leading-[1.85] mb-6">
+                  I&apos;m a Sacramento, California-based UX and product designer.
                   I don&apos;t just design interfaces — I build production-ready design systems.
                   Leveraging AI-first workflows, I help enterprise teams slash development cycles
                   and ship scalable, mission-critical products.
@@ -482,13 +525,16 @@ export default function HomePage() {
                   {/* Image clipped to same blob shape */}
                   <div
                     className="relative z-10 aspect-square w-full"
-                    style={{
-                      clipPath: "url(#blobClip)",
-                      backgroundImage: "url('/images/my-image.jpeg')",
-                      backgroundSize: "cover",
-                      backgroundPosition: "50% 25%",
-                    }}
-                  />
+                    style={{ clipPath: "url(#blobClip)" }}
+                  >
+                    <Image
+                      src="/images/my-image.jpeg"
+                      alt="Akhil Vanga, UX and product designer"
+                      fill
+                      sizes="(min-width: 1280px) 552px, (min-width: 1024px) 45vw, 100vw"
+                      className="object-cover object-[50%_25%]"
+                    />
+                  </div>
                 </div>
               </Reveal>
             </div>
@@ -818,8 +864,12 @@ export default function HomePage() {
                     type="submit"
                     className="w-full py-4 bg-white text-[var(--black)] text-[13px] font-semibold tracking-[0.08em] uppercase rounded-lg hover:bg-white/90 transition-all duration-300 hover:scale-[1.01]"
                   >
-                    Submit
+                    Open email draft
                   </button>
+                  <p className="text-[12px] leading-relaxed text-white/60">
+                    Opens your email app with these details. Review and send the message there,
+                    or email akhil.vang@gmail.com directly.
+                  </p>
                 </form>
               </Reveal>
             </div>

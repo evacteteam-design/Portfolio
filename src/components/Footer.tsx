@@ -50,7 +50,9 @@ export function Footer() {
               akhil.vang@gmail.com
             </a>
             <br />
-            +1 (341) 345-7337
+            <a href="tel:+13413457337" className="hover:underline">
+              +1 (341) 345-7337
+            </a>
           </div>
         </div>
 

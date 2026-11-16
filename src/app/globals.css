@@ -74,6 +74,10 @@ html {
   scroll-behavior: smooth;
 }
 
+[id] {
+  scroll-margin-top: 80px;
+}
+
 body {
   background: var(--white);
   color: var(--ink);
@@ -597,6 +601,9 @@ html.lenis, html.lenis body {
    REDUCED MOTION
    ══════════════════════════════════════ */
 @media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;

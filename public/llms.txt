@@ -1,0 +1,20 @@
+# Akhil Vanga
+
+> Senior UX and AI-first Product Designer based in Sacramento, California, with 12+ years of experience across aviation, healthcare, and government.
+
+## Portfolio
+- [Home](https://www.akhilvanga.com/): Background, capabilities, selected work, and contact information.
+- [CCS+ Trade Center](https://www.akhilvanga.com/work/ccs-trade-center): United Airlines pilot scheduling and trip-trading UX case study.
+- [Axiom CI](https://www.akhilvanga.com/work/axiom-ci): AI-assisted contract and invoice review, evidence, and commercial decisions.
+- [Design System](https://www.akhilvanga.com/design-system): Themeable React and TypeScript components, design tokens, and live examples.
+- [UX Architect](https://www.akhilvanga.com/ux-architect): Interactive tool for product briefs, personas, journeys, and wireframe blueprints.
+
+## Canonical profile
+- [LinkedIn](https://www.linkedin.com/in/akvanga/)
+- [Contact](https://www.akhilvanga.com/#contact)
+
+## Crawling
+- [Sitemap](https://www.akhilvanga.com/sitemap.xml)
+- [Robots](https://www.akhilvanga.com/robots.txt)
+
+This file is a navigation aid, not a guarantee of search or AI indexing. Public pages are crawlable; API endpoints are excluded from crawling.
