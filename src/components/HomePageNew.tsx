@@ -3,7 +3,7 @@
 import { useEffect, useState, useRef } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpDown, ArrowUpRight, ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { ArrowUpDown, ArrowUpRight, ChevronLeft, ChevronRight, Code2, Search, Workflow } from "lucide-react";
 import { Reveal } from "@/components/Reveal";
 import { ProjectCard } from "@/components/ProjectCard";
 import { AnimatedCounter } from "@/components/AnimatedCounter";
@@ -546,35 +546,36 @@ export default function HomePage() {
               </Reveal>
             </div>
 
-            {/* Right — Stats */}
+            {/* Right — Experience and capabilities */}
             <div className="flex flex-col justify-center">
               <Reveal delay={2}>
-                <div className="grid grid-cols-3 gap-3 sm:gap-6">
-                  <div className="text-center p-3 sm:p-6 md:p-8 rounded-xl bg-white/80 backdrop-blur-sm border border-[var(--border)] hover:shadow-lg hover:shadow-[var(--accent-light)]/10 hover:-translate-y-1 transition-all duration-300">
-                    <p className="font-[family-name:var(--font-instrument-serif)] text-[clamp(1.8rem,5vw,4rem)] leading-none text-[var(--accent)] mb-1 sm:mb-2">
-                      <AnimatedCounter end={12} suffix="+" />
-                    </p>
-                    <p className="text-[10px] sm:text-[12px] text-[var(--ink3)] leading-snug">
-                      Years of Experience
-                    </p>
-                  </div>
-                  <div className="text-center p-3 sm:p-6 md:p-8 rounded-xl bg-white/80 backdrop-blur-sm border border-[var(--border)] hover:shadow-lg hover:shadow-[var(--accent-light)]/10 hover:-translate-y-1 transition-all duration-300">
-                    <p className="font-[family-name:var(--font-instrument-serif)] text-[clamp(1.8rem,5vw,4rem)] leading-none text-[var(--accent)] mb-1 sm:mb-2">
-                      UX
-                    </p>
-                    <p className="text-[10px] sm:text-[12px] text-[var(--ink3)] leading-snug">
-                      End-to-End Ownership
-                    </p>
-                  </div>
-                  <div className="text-center p-3 sm:p-6 md:p-8 rounded-xl bg-white/80 backdrop-blur-sm border border-[var(--border)] hover:shadow-lg hover:shadow-[var(--accent-light)]/10 hover:-translate-y-1 transition-all duration-300">
-                    <p className="font-[family-name:var(--font-instrument-serif)] text-[clamp(1.8rem,5vw,4rem)] leading-none text-[var(--accent)] mb-1 sm:mb-2">
-                      Code
-                    </p>
-                    <p className="text-[10px] sm:text-[12px] text-[var(--ink3)] leading-snug">
-                      Working Design Systems
-                    </p>
-                  </div>
-                </div>
+                <ul aria-label="Experience and capabilities" className="grid gap-3">
+                  {[
+                    { title: "Years of experience", detail: "Complex enterprise UX.", Icon: null },
+                    { title: "Product ownership", detail: "From idea to delivery.", Icon: Workflow },
+                    { title: "Design systems", detail: "Reusable UI, built in code.", Icon: Code2 },
+                  ].map(({ title, detail, Icon }) => (
+                    <li key={title} className="flex min-w-0 items-center gap-4 rounded-xl border border-[var(--border)] bg-white/80 p-4 sm:p-5">
+                      <div className="grid size-12 shrink-0 place-items-center rounded-lg bg-[var(--accent)]/10 text-[var(--accent)]">
+                        {Icon ? (
+                          <Icon className="size-6" aria-hidden="true" />
+                        ) : (
+                          <span className="text-[18px] font-semibold leading-none tabular-nums">
+                            <AnimatedCounter end={12} suffix="+" />
+                          </span>
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <p className="text-[14px] font-semibold leading-snug text-[var(--ink)] sm:text-[15px]">
+                          {title}
+                        </p>
+                        <p className="mt-1 text-[12px] leading-relaxed text-[var(--ink2)] sm:text-[13px]">
+                          {detail}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
               </Reveal>
 
               {/* Portrait photo — blob-clipped */}
@@ -709,7 +710,7 @@ export default function HomePage() {
                         <tr>
                           <th scope="col" className="sticky left-0 z-10                           bg-[#EDF4FB] px-3 py-2.5">Member<ArrowUpDown className="ml-1 inline size-3 align-[-1px]" aria-hidden="true" /></th>
                                                     <th scope="col" className="px-3 py-2.5">Role<ArrowUpDown className="ml-1 inline size-3 align-[-1px]" aria-hidden="true" /></th>
-                          <th scope="col" className="px-3 py-2.5">Status</th>
+                          <th scope="col" className="px-3 py-2.5 text-center">Status</th>
                           <th scope="col" className="px-3 py-2.5">Department</th>
                         </tr>
                       </thead>
@@ -717,19 +718,19 @@ export default function HomePage() {
                         <tr>
                           <th scope="row" className="sticky left-0 z-10 bg-white px-3 py-2.5 font-semibold text-[var(--ink)]">Maya Chen</th>
                           <td className="px-3 py-2.5">Product designer</td>
-                          <td className="px-3 py-2.5"><span className="rounded-full bg-emerald-50 px-2 py-1 font-medium text-emerald-700">Active</span></td>
+                          <td className="px-3 py-2.5 text-center align-middle"><span className="inline-flex items-center justify-center whitespace-nowrap rounded-full bg-emerald-50 px-2 py-1 font-medium text-emerald-700">Active</span></td>
                           <td className="px-3 py-2.5">Design</td>
                         </tr>
                         <tr>
                           <th scope="row" className="sticky left-0 z-10 bg-white px-3 py-2.5 font-semibold text-[var(--ink)]">Jordan Lee</th>
                           <td className="px-3 py-2.5">Engineer</td>
-                          <td className="px-3 py-2.5"><span className="rounded-full bg-amber-50 px-2 py-1 font-medium text-amber-700">In review</span></td>
+                          <td className="px-3 py-2.5 text-center align-middle"><span className="inline-flex items-center justify-center whitespace-nowrap rounded-full bg-amber-50 px-2 py-1 font-medium text-amber-700">In review</span></td>
                           <td className="px-3 py-2.5">Engineering</td>
                         </tr>
                         <tr>
                           <th scope="row" className="sticky left-0 z-10 bg-white px-3 py-2.5 font-semibold text-[var(--ink)]">Priya Shah</th>
                           <td className="px-3 py-2.5">Product manager</td>
-                          <td className="px-3 py-2.5"><span className="rounded-full bg-emerald-50 px-2 py-1 font-medium text-emerald-700">Active</span></td>
+                          <td className="px-3 py-2.5 text-center align-middle"><span className="inline-flex items-center justify-center whitespace-nowrap rounded-full bg-emerald-50 px-2 py-1 font-medium text-emerald-700">Active</span></td>
                           <td className="px-3 py-2.5">Product</td>
                         </tr>
                       </tbody>
