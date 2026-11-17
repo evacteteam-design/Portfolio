@@ -11,46 +11,45 @@ import { FAQ } from "@/components/FAQ";
 import { caseStudies } from "@/content/caseStudies";
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
-/* ─── Capabilities data matching Framer ─── */
 const capabilities = [
   {
     number: "1",
-    title: "AI-Integrated Workflows",
+    title: "AI-First Product Design",
     items: [
-      "Architected agentic AI workflows that fundamentally redefined how design teams synchronize with front-end development.",
-      "Pioneered the use of \"vibe coding\" to translate natural language intent into production-ready UI components, radically compressing sprint cycles.",
-      "Integrated LLM-based prompt engineering into the core of the design process to automate user research synthesis and documentation.",
-      "Operationalized AI at scale by embedding real-time synchronization pipelines directly into high-stakes, enterprise product workstreams.",
+      "Build interactive tools such as UX Architect to explore how AI can support structured UX work, from product briefs to wireframe blueprints.",
+      "Design AI-assisted workflows around visible evidence, uncertainty, and human control, as explored in Axiom CI.",
+      "Connect product design to working React and TypeScript interfaces, using AI as part of a hands-on design and implementation practice.",
+      "Keep a suggested match distinct from an accepted decision, with low-confidence and unmatched states visible.",
     ],
   },
   {
     number: "2",
-    title: "Strategic Design Leadership",
+    title: "End-to-End Design Ownership",
     items: [
-      "Orchestrated design strategy for mission-critical enterprise platforms across diverse sectors, including aviation, healthcare, and government.",
-      "Aligned design outcomes with business OKRs to ensure that every creative decision directly drives measurable operational efficiency.",
-      "Advocated for design-as-strategy at the executive level, successfully shifting product roadmaps through data-backed research and usability insights.",
-      "Led cross-functional teams through complex delivery cycles, ensuring seamless alignment between stakeholders, researchers, and developers.",
+      "Work hands-on across research, information architecture, interaction design, high-fidelity UI, and delivery.",
+      "Translate complex requirements into clear flows, state models, and specifications that make design intent inspectable.",
+      "Document the reasoning behind decisions so the work can be discussed, challenged, and carried forward by others.",
+      "Take responsibility for coherence across the experience, not just the finish of a single screen.",
     ],
   },
   {
     number: "3",
-    title: "Scalable Systems Architecture",
+    title: "Reusable Systems & Implementation",
     items: [
-      "Spearheaded the development of unified design systems that standardize UI patterns and significantly reduce inconsistency across large-scale applications.",
-      "Engineered high-performance component libraries utilizing advanced Figma architecture, tokens, and variables to ensure maintainability at enterprise scale.",
-      "Modernized legacy technical environments by leading large-scale platform migrations from outdated desktop frameworks to modern React and Angular architectures.",
-      "Institutionalized design standards and governance models that have been adopted by agencies and teams beyond the immediate product scope.",
+      "Design configurable patterns instead of treating every screen as a separate problem, as shown in the CCS+ trip-customization workflow.",
+      "Build reusable React and TypeScript components with shared tokens, documented examples, and working interactions.",
+      "Connect design intent to implementation through responsive behavior, component states, and explicit interaction rules.",
+      "Make reuse tangible through a public design-system catalog with live examples and copyable code.",
     ],
   },
   {
     number: "4",
-    title: "Evidence-Based UX Mastery",
+    title: "Product Judgment & Evidence",
     items: [
-      "Institutionalized a culture of research by running comprehensive, mixed-methods studies that turn user friction points into actionable design improvements.",
-      "Championed universal accessibility by embedding WCAG 2.1 AA compliance into the foundation of all front-end development and design workflows.",
-      "Optimized the end-to-end user experience through rigorous application of the HEART framework and continuous A/B testing cycles.",
-      "Delivered proven, quantifiable results—consistently achieving double-digit improvements in user satisfaction, error reduction, and operational efficiency.",
+      "Connect interface problems to the decisions people need to make, from evaluating a pilot trip to reviewing an invoice exception.",
+      "Frame the wider workflow before refining individual screens, including context, business rules, and the consequences of an action.",
+      "Make trade-offs explicit: scanning speed versus detail, automation versus human review, and consistency versus flexibility.",
+      "Distinguish design intent, qualitative feedback, and measured outcomes rather than presenting them as interchangeable proof.",
     ],
   },
 ];
@@ -275,24 +274,34 @@ export default function HomePage() {
           {/* Animated horizontal rule */}
           <div className="hero-rule w-full h-px bg-white/25 mb-6 sm:mb-10" />
 
-          {/* Two-column: identity+CTAs left / stats right */}
-          <div className="hero-anim-3 flex flex-col lg:flex-row lg:items-end lg:justify-between gap-10">
+          {/* Identity and actions stay separate from the experience summary. */}
+          <div className="hero-anim-3 grid grid-cols-1 items-start gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] lg:gap-16">
 
             {/* Left — name, title, CTAs */}
-            <div className="flex flex-col gap-7">
+            <div className="flex min-w-0 flex-col gap-6">
               <div>
                 <p className="text-white text-[22px] sm:text-[28px] md:text-[32px] font-semibold leading-tight tracking-tight mb-1">
                   Akhil Vanga
                 </p>
-                <p className="text-[12px] sm:text-[15px] font-light tracking-[0.06em] sm:tracking-[0.08em] uppercase" style={{ color: "var(--accent-light)" }}>
-                  AI-First Product Designer&nbsp;&nbsp;·&nbsp;&nbsp;Sacramento, CA
+                <p className="text-[13px] leading-relaxed sm:text-[15px]" style={{ color: "var(--accent-light)" }}>
+                  Senior UX &amp; AI-First Product Designer
+                </p>
+                <p className="mt-1 text-[12px] text-white/60 sm:text-[13px]">
+                  Sacramento, California
                 </p>
               </div>
 
-              <div className="flex flex-wrap gap-3">
+              <div className="flex flex-wrap items-center gap-3">
+                <Link
+                  href="/ux-architect"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full bg-white px-5 py-3 text-[12px] font-semibold tracking-[0.04em] text-[var(--black)] transition-all duration-300 hover:scale-[1.02] hover:bg-white/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white sm:px-7 sm:py-3.5 sm:text-[13px]"
+                >
+                  Try UX Architect
+                  <ArrowUpRight className="size-4 shrink-0" aria-hidden="true" />
+                </Link>
                 <a
                   href="#work"
-                  className="inline-flex items-center gap-2 px-5 sm:px-7 py-3 sm:py-3.5 bg-white text-[var(--black)] text-[12px] sm:text-[13px] font-semibold tracking-[0.04em] rounded-full hover:bg-white/90 transition-all duration-300 hover:scale-[1.02]"
+                  className="inline-flex min-h-12 items-center justify-center gap-2 rounded-full border border-white/30 bg-white/10 px-5 py-3 text-[12px] font-semibold tracking-[0.04em] text-white backdrop-blur-sm transition-all duration-300 hover:border-white/50 hover:bg-white/20 sm:px-7 sm:py-3.5 sm:text-[13px]"
                 >
                   View my work
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
@@ -301,40 +310,30 @@ export default function HomePage() {
                 </a>
                 <a
                   href="#contact"
-                  className="inline-flex items-center gap-2 px-5 sm:px-7 py-3 sm:py-3.5 bg-white/10 border border-white/20 text-white text-[12px] sm:text-[13px] font-medium tracking-[0.04em] rounded-full hover:bg-white/20 hover:border-white/35 transition-all duration-300 backdrop-blur-sm"
+                  className="inline-flex min-h-12 items-center px-2 py-3 text-[12px] font-medium text-white/85 transition-colors hover:text-white sm:text-[13px]"
                 >
                   Get in touch
                 </a>
-                <Link
-                  href="/ux-architect"
-                  className="inline-flex items-center gap-2 rounded-full border border-[var(--accent-light)]/60 bg-[var(--accent-light)]/15 px-5 py-3 text-[12px] font-semibold tracking-[0.04em] text-white transition-all duration-300 hover:bg-[var(--accent-light)]/25 sm:px-7 sm:py-3.5 sm:text-[13px]"
-                >
-                  Try the UX Architect
-                  <span className="rounded-full bg-[var(--accent-light)]/25 px-2 py-0.5 text-[9px] uppercase tracking-wider">
-                    AI
-                  </span>
-                </Link>
               </div>
             </div>
 
-            {/* Right — stat numbers */}
-            <div className="flex gap-5 sm:gap-8 lg:gap-12 shrink-0">
+            {/* Right — experience and focus */}
+            <dl className="min-w-0 divide-y divide-white/15 border-y border-white/15">
               {[
-                { end: 12, suffix: "+", label: "Years\nExperience" },
-                { end: 82, suffix: "+", label: "Enterprise\nProjects" },
-                { end: 3, suffix: "x", label: "Faster\nHandoff" },
-              ].map(({ end, suffix, label }) => (
-                <div key={label} className="text-right">
-                  <p className="font-[family-name:var(--font-instrument-serif)] text-[clamp(1.4rem,3vw,2.4rem)] leading-none text-white mb-1.5"
-                    style={{ textShadow: "0 2px 12px rgba(5,8,18,0.8)" }}>
-                    <AnimatedCounter end={end} suffix={suffix} />
-                  </p>
-                  <p className="text-[9px] font-medium tracking-[0.12em] uppercase text-white/45 whitespace-pre-line leading-[1.6]">
+                { value: "12+ years", label: "Experience" },
+                { value: "End-to-end", label: "Design ownership" },
+                { value: "Design + code", label: "Systems thinking" },
+              ].map(({ value, label }) => (
+                <div key={label} className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 py-4">
+                  <dt className="text-[10px] font-medium uppercase tracking-[0.1em] text-white/60 sm:text-[11px]">
                     {label}
-                  </p>
+                  </dt>
+                  <dd className="text-[16px] font-medium leading-snug text-white sm:text-[18px]">
+                    {value}
+                  </dd>
                 </div>
               ))}
-            </div>
+            </dl>
           </div>
         </div>
 
@@ -353,15 +352,16 @@ export default function HomePage() {
         <div className="max-w-[var(--max-w)] mx-auto relative z-10">
           <Reveal>
             <h2 className="text-[11px] font-semibold tracking-[0.14em] uppercase text-[var(--accent-light)] mb-4">
-              What I Can Do For You
+              How I Approach Complex Work
             </h2>
           </Reveal>
 
           <Reveal delay={1}>
             <p className="text-[14px] sm:text-[16px] text-[var(--ink2)] leading-[1.85] max-w-2xl mb-10 sm:mb-16">
-              I am an AI-First Product Designer with over 12 years of experience. I specialize
-              in building high-fidelity, high-impact digital products across aviation, healthcare,
-              and government by merging strategic UX with agentic AI workflows and front-end development.
+              I am an AI-first product designer with over 12 years of experience across aviation,
+              healthcare, and government. I combine end-to-end UX ownership, AI-assisted workflows,
+              and front-end development to turn complex problems into working experiences.
+              Try UX Architect to see that approach in action, or explore the decisions behind my enterprise work.
             </p>
           </Reveal>
 
@@ -442,17 +442,20 @@ export default function HomePage() {
               <Reveal delay={2}>
                 <p className="text-[16px] text-[var(--ink2)] leading-[1.85] mb-6">
                   I&apos;m a Sacramento, California-based UX and product designer.
-                  I don&apos;t just design interfaces — I build production-ready design systems.
-                  Leveraging AI-first workflows, I help enterprise teams slash development cycles
-                  and ship scalable, mission-critical products.
+                  My practice brings AI-first product thinking together with hands-on UX and
+                  front-end development. From AI-assisted review in Axiom CI to the live UX Architect
+                  tool, I explore how intelligent experiences can make complex work clearer
+                  while keeping people in control.
                 </p>
               </Reveal>
 
               <Reveal delay={3}>
                 <p className="text-[16px] text-[var(--ink2)] leading-[1.85] mb-10">
                   With over 12 years spanning aviation, healthcare, and government, I specialize in
-                  transforming complex internal tools into experiences that users actually trust and
-                  depend on daily.
+                  transforming complex internal tools into coherent experiences. My experience has
+                  primarily been as an individual design owner. I&apos;m now seeking staff-level
+                  individual-contributor or hands-on UX lead opportunities where I can bring that
+                  ownership and systems thinking to a wider scope.
                 </p>
               </Reveal>
 
@@ -489,18 +492,18 @@ export default function HomePage() {
                   </div>
                   <div className="text-center p-3 sm:p-6 md:p-8 rounded-xl bg-white/80 backdrop-blur-sm border border-[var(--border)] hover:shadow-lg hover:shadow-[var(--accent-light)]/10 hover:-translate-y-1 transition-all duration-300">
                     <p className="font-[family-name:var(--font-instrument-serif)] text-[clamp(1.8rem,5vw,4rem)] leading-none text-[var(--accent)] mb-1 sm:mb-2">
-                      <AnimatedCounter end={82} suffix="+" />
+                      UX
                     </p>
                     <p className="text-[10px] sm:text-[12px] text-[var(--ink3)] leading-snug">
-                      Completed Projects
+                      End-to-End Ownership
                     </p>
                   </div>
                   <div className="text-center p-3 sm:p-6 md:p-8 rounded-xl bg-white/80 backdrop-blur-sm border border-[var(--border)] hover:shadow-lg hover:shadow-[var(--accent-light)]/10 hover:-translate-y-1 transition-all duration-300">
                     <p className="font-[family-name:var(--font-instrument-serif)] text-[clamp(1.8rem,5vw,4rem)] leading-none text-[var(--accent)] mb-1 sm:mb-2">
-                      <AnimatedCounter end={20} suffix="+" />
+                      Code
                     </p>
                     <p className="text-[10px] sm:text-[12px] text-[var(--ink3)] leading-snug">
-                      Clients Worldwide
+                      Working Design Systems
                     </p>
                   </div>
                 </div>
@@ -570,6 +573,8 @@ export default function HomePage() {
                 Explore a working React + TypeScript library with themeable design tokens, accessible
                 components, live examples, and copyable code. From buttons and form controls to dialogs,
                 navigation, and data tables, the same patterns are ready to adapt to your product.
+                This is a hands-on example of how I turn individual design decisions into shared
+                foundations, with tokens and documented behavior that keep the implementation coherent.
               </p>
             </Reveal>
 
@@ -699,8 +704,9 @@ export default function HomePage() {
 
           <Reveal delay={2}>
             <p className="text-[14px] sm:text-[16px] text-[var(--ink2)] leading-[1.85] max-w-2xl mb-10 sm:mb-16">
-              These selected projects reflect my passion for solving real problems through thoughtful design,
-              strategic research, and impactful storytelling.
+              Two perspectives on complex enterprise work: making pilot scheduling easier to evaluate,
+              and making AI-assisted commercial review more explainable. Each case study lays out my
+              ownership, key trade-offs, reusable patterns, and the limits of the available evidence.
             </p>
           </Reveal>
 
@@ -709,19 +715,6 @@ export default function HomePage() {
               <ProjectCard key={project.slug} project={project} index={i} />
             ))}
 
-            {/* Coming soon */}
-            <Reveal delay={2}>
-              <div className="rounded-xl border border-dashed border-[var(--accent-light)]/30 bg-[var(--accent-light)]/5 flex items-center justify-center min-h-[300px] sm:min-h-[500px] hover:bg-white/60 transition-colors duration-300">
-                <div className="text-center px-8">
-                  <p className="font-[family-name:var(--font-instrument-serif)] text-2xl text-[var(--ink3)] italic mb-3 opacity-40">
-                    More coming soon
-                  </p>
-                  <p className="text-[13px] text-[var(--ink3)] opacity-50">
-                    Additional case studies are being prepared.
-                  </p>
-                </div>
-              </div>
-            </Reveal>
           </div>
         </div>
       </section>
@@ -772,9 +765,9 @@ export default function HomePage() {
               </Reveal>
               <Reveal delay={2}>
                 <p className="text-[16px] text-white/45 leading-relaxed mb-10">
-                  Whether it&apos;s your next enterprise platform, a design system, or your product&apos;s
-                  next big initiative — I&apos;m ready to bring strategic design thinking and AI-first
-                  workflows to your team.
+                  Looking for a hands-on designer to own a complex problem from framing to delivery?
+                  I&apos;m interested in staff-level IC and hands-on UX lead opportunities across
+                  enterprise products, design systems, and responsible AI experiences.
                 </p>
               </Reveal>
 

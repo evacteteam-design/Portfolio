@@ -24,6 +24,10 @@ export interface CaseStudy {
   decisions: Decision[];
   constraints: Constraint[];
   impact: ImpactMetric[];
+  ownership: { title: string; body: string }[];
+  evidenceNote: string;
+  measurementPlan: string;
+  reflection: string;
   beforeAfter?: BeforeAfter[];
   contextTail?: string;
   researchTail?: string;
@@ -125,31 +129,52 @@ export const caseStudies: CaseStudy[] = [
     slug: "ccs-trade-center",
     title: "CCS+ Trade Center",
     seoDescription: "How Akhil Vanga redesigned United Airlines' pilot scheduling experience, reducing friction and making trip trading clearer for more than 10,000 crew members.",
-    subtitle: "Redesigning how 10,000 pilots schedule their lives",
+    subtitle: "Making high-stakes scheduling decisions clearer for 10,000+ crew",
     client: "United Airlines",
     year: "2023–2025",
     role: "Lead UX/UI Designer",
     platform: "Desktop · Tablet · Mobile",
     users: "10,000+ crew",
     duration: "2 years · 6+ sprints",
-    impactHeadline: "~65% time reduction",
+    impactHeadline: "Reusable scheduling workflows",
     tags: ["United Airlines", "2023–2025", "Lead UX/UI Designer", "10,000+ Pilots", "Enterprise · Internal Tool"],
     accentColor: "#4BA3E3",
     accentDark: "#002244",
     heroScreenUrl: "/images/ccs-hero.png",
     heroScreenCaption: "ccsplus.ual.com / trade-center / trips — Trade Board · 217 trips",
     previewImage: "/images/ccs-preview.png",
-    lede: "When 10,000 crew members dread opening their scheduling app, every second of friction has a real operational cost. I led the redesign of CCS+ Trade Center — United Airlines' highest-traffic pilot-facing feature — from a system pilots feared to one they trusted.",
+    lede: "Pilot trip trading combines time pressure, dense information, and consequential choices. I owned the UX work for the CCS+ Trade Center redesign, connecting filter defaults, inline trip details, schedule context, and reusable configuration patterns into a more coherent decision flow.",
+    ownership: [
+      {
+        title: "My scope: end-to-end UX ownership",
+        body: "I carried the design work from workflow definition and information architecture through prototypes, detailed UI, and implementation specifications. This case study describes my individual design contribution, not management of a design team.",
+      },
+      {
+        title: "Strategic frame: protect decision context",
+        body: "The issues were connected: repeated filter setup delayed useful work, navigation interrupted comparison, and buried flight-type indicators made evaluation harder. I treated these as a decision-context problem rather than unrelated screen improvements.",
+      },
+      {
+        title: "Trade-off: density without forced navigation",
+        body: "Putting every trip detail in the table would compete with scanning. Moving all detail to another page would interrupt comparison. Inline expansion keeps the board compact while making a selected trip inspectable in place.",
+      },
+      {
+        title: "Leverage: one configurable pattern",
+        body: "Trip customization spans Trade Board, Category Summary, and Open Trip Alerts. I designed a shared configurable component rather than separate modal behaviors, keeping required fields, optional columns, and device-specific configuration consistent across those contexts.",
+      },
+    ],
+    evidenceNote: "The screens and decisions demonstrate the redesigned workflow. The ~65% trip-evaluation time reduction is an estimate based on pilot feedback sessions, not a controlled before-and-after benchmark. The 217-trip count describes an example screen, not an outcome metric. No broader business savings or cross-team adoption is claimed.",
+    measurementPlan: "To validate the estimate, compare the same trip-evaluation tasks before and after the redesign, recording completion time, errors, and task success. Separately evaluate filter corrections and comprehension of deadhead indicators. These are proposed next steps, not completed measurements.",
+    reflection: "A small indicator and a shared configuration pattern can matter as much as a larger view redesign. I would strengthen the next iteration by establishing a task-performance baseline before delivery, so qualitative feedback and measured improvement can be evaluated separately.",
     sections: [
       {
         id: "context",
         label: "Context",
         number: "01",
         title: "One platform.",
-        titleAccent: "15,000 pilots.",
+        titleAccent: "10,000+ crew.",
         body: [
           "CCS+ is United Airlines' internal scheduling platform built to replace two siloed legacy tools — the <strong>Crew Communication System</strong> (a 90s-era internal calendar) and <strong>Crew Companion</strong> (a third-party trading app). Both were non-responsive, completely disconnected, and deeply frustrating to use.",
-          "The <strong>Trade Center</strong> is CCS+'s highest-traffic feature — where pilots trade trips, pick up open time, submit requests, and verify schedule legality every single day. And it was universally dreaded.",
+          "The <strong>Trade Center</strong> is where pilots trade trips, pick up open time, submit requests, and verify schedule legality. The design needed to support repeated, time-sensitive decisions without making pilots rebuild their context.",
           "The scheduling window is often <strong>minutes long</strong>. When a trip opens, the fastest pilot who can correctly evaluate it wins it. An interface requiring 30 seconds of manual re-setup before filtering isn't just annoying — it directly costs pilots income.",
         ],
         quote: {
@@ -174,7 +199,7 @@ export const caseStudies: CaseStudy[] = [
         title: "From requirements to",
         titleAccent: "shipped code.",
         body: [
-          "Every CCS+ feature followed the same four-stage repeatable process — increasing velocity while maintaining alignment with engineering, stakeholders, and the pilots who would use it every day.",
+          "I carried the work through requirements, information architecture, prototyping, and implementation detail. The aim was to keep the reasoning and interaction rules clear throughout delivery, not just at the final handoff.",
         ],
       },
       {
@@ -199,8 +224,8 @@ export const caseStudies: CaseStudy[] = [
       },
     ],
     stats: [
-      { value: "10k", suffix: "+", description: "Active pilots using CCS+ daily", barColor: "#4BA3E3" },
-      { value: "217", description: "Trips visible per session — all scannable without navigating away", barColor: "#E8A020" },
+      { value: "10k", suffix: "+", description: "Crew members in the project scope", barColor: "#4BA3E3" },
+      { value: "217", description: "Trips in the example board — not an outcome metric", barColor: "#E8A020" },
       { value: "~65", suffix: "%", description: "Estimated reduction in trip evaluation time", caveat: "Based on pilot feedback sessions", barColor: "#4BA3E3" },
       { value: "18", suffix: "mo", description: "Deadhead complaint in backlog — resolved in one sprint", barColor: "#D94F4F" },
     ],
@@ -255,7 +280,7 @@ export const caseStudies: CaseStudy[] = [
           "Every pilot has a base, equipment type, and seat position. Before the redesign, every session started from zero — CLE, 737, Captain re-entered manually every single day. That's 30–40 seconds gone before useful work begins.",
           "The redesign pulls these from the pilot's profile and pre-loads on session start. The filter modal uses a single configurable template component working identically across Trade Board and Category Summary.",
         ],
-        impact: "Eliminated 3–5 repetitive inputs per session. First meaningful action 40+ seconds earlier. Zero daily re-entry for 10,000+ pilots.",
+        impact: "Profile-based defaults remove repeated base, equipment, and position entry. Actual time saved needs task-level measurement.",
         image: "/images/filter modal to filter trip list.png",
         imageCaption: "Filter panel: CLE/737/Captain pre-populated from pilot profile. Full calendar context, availability toggles, save-as-template.",
         imageUrl: "Filter trip list modal",
@@ -282,7 +307,7 @@ export const caseStudies: CaseStudy[] = [
           "Deadhead (DH) flights are positioning legs — the pilot rides as a passenger. Confusing a DH leg with an operating one has real consequences: misunderstood workload, pay miscalculations, and scheduling errors hard to undo.",
           "The complaint had sat in the backlog for 18 months. The fix: a persistent, high-contrast DH badge on every deadheading crew member, impossible to miss regardless of scan speed.",
         ],
-        impact: "DH-related confusion dropped sharply post-launch. An 18-month backlog item resolved in one sprint with a precisely targeted intervention.",
+        impact: "Made deadhead status persistent and visually distinct, addressing the reported complaint with a targeted one-sprint change. The change in error rate is not quantified here.",
         image: "/images/inspecting a trip fromc ategory summary.png",
         imageCaption: "Crew tab: DH badges on crew members — immediately distinguishable from operating crew.",
         imageUrl: "Category Summary — V5368 crew tab",
@@ -309,7 +334,7 @@ export const caseStudies: CaseStudy[] = [
           "The Customize Trip Info modal needed to work across three contexts: Trade Board, Category Summary, and Open Trip Alerts. Rather than designing each separately — creating three different mental models — I designed one configurable component.",
           "Desktop, Tablet, and Mobile tabs for per-device configuration. Required columns locked. Optional columns freely reorderable via drag-and-drop. Live preview always visible. Same modal, same behavior, everywhere.",
         ],
-        impact: "One decision propagated consistently across the entire product. Reduced engineering rework. Pilots learn one system no matter which view they encounter it in.",
+        impact: "One configuration model across three product contexts, rather than three separate interaction models. Engineering time savings are not quantified here.",
         image: "/images/modal-new.png",
         imageCaption: "One component: Desktop/Tablet/Mobile tabs. Live preview. 22 configurable fields. Required fields locked. Drag-and-drop reordering.",
       },
@@ -321,10 +346,10 @@ export const caseStudies: CaseStudy[] = [
       { title: "Zero Downtime Tolerance", body: "10,000+ pilots depend on CCS+ daily. Every release had to be backwards-compatible and deployable without service interruption." },
     ],
     impact: [
-      { value: "10k", suffix: "+", label: "Active pilots using CCS+ daily" },
-      { value: "~65", suffix: "%", label: "Reduction in trip evaluation time", caveat: "Estimated from pilot feedback sessions" },
+      { value: "10k", suffix: "+", label: "Crew members in project scope" },
+      { value: "~65", suffix: "%", label: "Estimated trip-evaluation time reduction", caveat: "Pilot feedback estimate, not a controlled benchmark" },
       { value: "18", suffix: "mo", label: "Backlog complaint resolved in 1 sprint" },
-      { value: "217", label: "Trips per session, all scannable" },
+      { value: "3", label: "Contexts sharing one customization pattern" },
     ],
     beforeAfter: [
       {
@@ -408,7 +433,7 @@ export const caseStudies: CaseStudy[] = [
     platform: "Enterprise web application",
     users: "Procurement · Accounts Payable · finance teams",
     duration: "6 weeks",
-    impactHeadline: "A trust-first AI workflow that turns variance into a clear, accountable action",
+    impactHeadline: "Evidence-first review design",
     tags: ["AI UX", "Contract Intelligence", "Procurement", "Enterprise Workflow", "Recovery Ops"],
     accentColor: "#56B7F8",
     accentDark: "#061A2E",
@@ -416,6 +441,27 @@ export const caseStudies: CaseStudy[] = [
     heroScreenCaption: "Axiom CI / contract actions / pending review queue",
     previewImage: "/images/axiom-ci-case-study/Screenshot 2026-09-14 104638.png",
     lede: "Axiom CI helps teams spot invoice and contract variance earlier, but the real product challenge was making that signal trustworthy. Reviewers need to understand why a finding matters, what evidence supports it, and what decision should happen next — without turning everyday operations into a data-analysis task.",
+    ownership: [
+      {
+        title: "My scope: workflow and interaction design",
+        body: "I mapped the commercial review lifecycle and designed the action queues, supplier intake, contract context, mapping states, and invoice-review surfaces shown here. My contribution is the UX and interaction model, not ownership of AI-model accuracy or a claim of managing procurement teams.",
+      },
+      {
+        title: "Strategic frame: reviewability before automation",
+        body: "Detecting a variance is only one part of the task. I framed the experience around whether a person can inspect the evidence, understand uncertainty, and decide what to do next, connecting detection to an accountable review workflow.",
+      },
+      {
+        title: "Trade-off: shared context, distinct decisions",
+        body: "A single undifferentiated queue would mix supplier-level relationship issues with invoice-level exceptions. Completely separate experiences would fragment context. The design separates action streams while retaining shared evidence, status, and ownership conventions.",
+      },
+      {
+        title: "Leverage: a common trust model",
+        body: "Confidence, unmatched states, source references, and neutral status language recur across intake, mapping, and review. Those patterns provide a consistent basis for decisions across the designed workflow; external adoption has not been established here.",
+      },
+    ],
+    evidenceNote: "This study demonstrates the designed workflow and its rationale. The 29 actions, 6 contract actions, and 23 invoice actions are example interface data, not usage or performance metrics. No measured improvement in review accuracy, adoption, or recovered revenue is established by these screens.",
+    measurementPlan: "Validate the design with representative procurement and finance reviewers: can they distinguish an AI suggestion from an accepted match, locate supporting evidence, and route an exception correctly? Record task success, incorrect acceptance, review time, and understanding of confidence states before making impact claims.",
+    reflection: "An explainable screen does not by itself establish trust or model reliability. The next step is to test whether evidence and uncertainty remain understandable under realistic data quality and review pressure, including low-confidence and unmatched cases.",
     contextTail: "A commercial intelligence workflow — dense enough to be real, clear enough to review.",
     researchTail: "Evidence. Confidence. Accountability. Recovery.",
     sections: [
@@ -437,14 +483,14 @@ export const caseStudies: CaseStudy[] = [
       },
       {
         id: "research",
-        label: "Research & Discovery",
+        label: "Workflow Analysis",
         number: "02",
         title: "The real problem was",
         titleAccent: "not detection — it was trust.",
         body: [
-          "The biggest usability issue was not that teams missed exceptions. It was that they couldn't quickly determine <strong>which exceptions were real, which were low confidence, and which required a relationship review versus an invoice line review</strong>.",
-          "Across operational reviews, procurement teams described a fragmented experience: one queue for supplier relationship actions, another queue for invoice variations, and no shared model for how a finding moved from AI suggestion to validated decision.",
-          "Design research made it clear that the interface needed to do more than summarize data. It needed to encode a decision flow: evidence first, action second, accountability always.",
+          "The workflow analysis centered on a review question: <strong>which exceptions are supported, which are low confidence, and which need relationship review rather than invoice-line review?</strong>",
+          "Supplier relationship actions and invoice variations require different decisions, but both need a visible path from AI suggestion to human validation. I used that distinction to structure the action streams.",
+          "These are design hypotheses and rationale, not reported usability-study results. The interface makes evidence, action, and accountability explicit; testing still needs to establish how effectively reviewers understand them.",
         ],
       },
       {
@@ -481,29 +527,26 @@ export const caseStudies: CaseStudy[] = [
       },
     ],
     stats: [
-      { value: "29", description: "pending contract and invoice actions surfaced in one queue", barColor: "#56B7F8" },
-      { value: "6", description: "contract relationship actions separated from invoice review", barColor: "#8ACBFF" },
-      { value: "23", description: "invoice actions organized into reviewable categories", barColor: "#7FD6C8" },
-      { value: "1", description: "shared value lifecycle spanning commercial and finance teams", barColor: "#B9EAF8" },
+      { value: "29", description: "Example pending actions — interface data, not usage", barColor: "#56B7F8" },
+      { value: "6", description: "Example contract actions — interface data", barColor: "#8ACBFF" },
+      { value: "23", description: "Example invoice actions — interface data", barColor: "#7FD6C8" },
+      { value: "1", description: "Designed review lifecycle — not an adoption metric", barColor: "#B9EAF8" },
     ],
     insights: [
       {
         number: "01",
-        title: "Queue clarity improved review momentum",
-        body: "The product organizes contract and invoice work into separate action streams, reducing cognitive collision between relationship decisions and invoice-level discrepancies.",
-        quote: "Reviewers knew what kind of action they were taking before they opened a case.",
+        title: "Separate the decision types",
+        body: "Contract relationship actions and invoice discrepancies call for different kinds of judgment. Separate streams are intended to make that distinction visible before a reviewer opens a case.",
       },
       {
         number: "02",
         title: "Evidence needed to be visible at the decision point",
         body: "AI suggestions were useful only when the user could inspect the source document, rate sheet, dates, and contract metadata without leaving the decision surface.",
-        quote: "The system had to explain itself without forcing users into detective work.",
       },
       {
         number: "03",
         title: "Recovery only works when review is transparent",
         body: "The value lifecycle is not just analytics. It is a proof chain — spend, variance, validation, recovery, and outcome all linked in one visible path.",
-        quote: "A business can only recover value if the work is legible and accountable.",
       },
     ],
     process: [
@@ -604,10 +647,10 @@ export const caseStudies: CaseStudy[] = [
       { title: "Enterprise usability under complexity", body: "The interface needed to account for layered contract rules, supplier relationships, and invoice logic without becoming impossible to scan or navigate." },
     ],
     impact: [
-      { value: "Clear", label: "decision paths" },
-      { value: "Trusted", label: "AI-assisted review" },
-      { value: "Actionable", label: "recovery workflow" },
-      { value: "Unified", label: "commercial + finance view" },
+      { value: "Evidence", label: "Visible beside the review decision" },
+      { value: "Human", label: "Acceptance separate from AI suggestion" },
+      { value: "Explicit", label: "Low-confidence and unmatched states" },
+      { value: "Shared", label: "Status language across designed surfaces" },
     ],
     tabs: [
       {

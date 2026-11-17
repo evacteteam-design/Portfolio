@@ -1,6 +1,9 @@
 # Akhil Vanga
 
-> Senior UX and AI-first Product Designer based in Sacramento, California, with 12+ years of experience across aviation, healthcare, and government.
+> Senior UX and AI-first Product Designer based in Sacramento, California, with 12+ years of experience across aviation, healthcare, and government. AI-first product design is the central theme, demonstrated by the live UX Architect tool, AI-assisted review workflows, end-to-end design ownership, and reusable systems.
+
+## Scope and evidence
+The portfolio presents individual design ownership, not prior people-management experience. Akhil is seeking staff-level individual-contributor or hands-on UX lead opportunities; these are target roles, not claimed employment titles. The CCS+ time-reduction figure is a feedback-based estimate, and Axiom CI screen counts are illustrative workflow data rather than measured business outcomes.
 
 ## Portfolio
 - [Home](https://www.akhilvanga.com/): Background, capabilities, selected work, and contact information.

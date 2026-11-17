@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const SITE_URL = "https://www.akhilvanga.com";
 export const SITE_TITLE = "Akhil Vanga - Senior UX & Product Designer in Sacramento";
 export const SITE_DESCRIPTION =
-  "Senior UX and AI-first Product Designer in Sacramento, California. Explore enterprise case studies, scalable design systems, and AI-powered UX workflows.";
+  "Senior UX and AI-first Product Designer in Sacramento. Try UX Architect and explore enterprise UX, end-to-end design ownership, and reusable systems.";
 
 export function createPageMetadata({
   title,
@@ -20,7 +20,7 @@ export function createPageMetadata({
     url: `${SITE_URL}/opengraph-image`,
     width: 1200,
     height: 630,
-    alt: "Akhil Vanga - Enterprise UX and AI-first product design",
+    alt: "Akhil Vanga - Enterprise UX, powered by AI",
   }];
 
   return {

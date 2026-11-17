@@ -33,7 +33,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
   const constraintsSection = study.sections.find((s) => s.id === "constraints");
   const tabOrder: StudyTabId[] = study.tabs?.map((tab) => tab.id) ?? ["problem", "solution", "challenge", "summary"];
   const activeTabData = study.tabs?.find((tab) => tab.id === activeTab);
-  const navItems = ["context", "research", "decisions", "impact"];
+  const navItems = ["ownership", "context", "research", "decisions", "impact"];
   if (study.beforeAfter && study.beforeAfter.length > 0) {
     navItems.splice(1, 0, "before-after");
   }
@@ -63,7 +63,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
           <ArrowLeft className="size-4" aria-hidden="true" />
           Akhil Vanga
         </Link>
-        <div className="hidden md:flex gap-8">
+        <div className="hidden lg:flex gap-8">
           {navItems.map((id) => (
             <a
               key={id}
@@ -72,7 +72,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                 navMode === "hero" ? "text-white/55" : "text-[var(--ink3)]"
               }`}
             >
-              {id === "before-after" ? "Before & After" : id}
+              {id === "before-after" ? "Before & After" : id === "impact" ? "Evidence" : id}
             </a>
           ))}
         </div>
@@ -133,7 +133,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
               { label: "Platform", value: study.platform },
               { label: "Users", value: study.users },
               { label: "Duration", value: study.duration },
-              { label: "Impact", value: study.impactHeadline },
+              { label: "Design focus", value: study.impactHeadline },
             ].map((m) => (
               <div key={m.label} className="px-3 sm:px-5 py-3 sm:py-4 border-r border-b border-white/12">
                 <p className="text-[9px] sm:text-[10px] tracking-[0.12em] uppercase text-white/35 mb-1">{m.label}</p>
@@ -171,6 +171,29 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                 priority
               />
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="ownership" aria-labelledby="ownership-title" className="scroll-mt-20 border-t border-[var(--border)] px-4 py-16 sm:px-6 sm:py-24 md:px-14">
+        <div className="mx-auto max-w-[var(--max-w)]">
+          <Reveal>
+            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
+              Ownership &amp; Product Judgment
+            </p>
+            <h2 id="ownership-title" className="mb-8 font-[family-name:var(--font-instrument-serif)] text-[clamp(2rem,3.8vw,3.375rem)] leading-[1.07] tracking-[-0.025em] text-[var(--black)]">
+              Beyond the individual screen.
+            </h2>
+          </Reveal>
+          <div className="grid gap-4 sm:gap-6 md:grid-cols-2">
+            {study.ownership.map((item, i) => (
+              <Reveal key={item.title} delay={i + 1} className="h-full">
+                <div className="h-full rounded-xl border border-[var(--border)] bg-[var(--surface)] p-5 sm:p-8">
+                  <h3 className="mb-3 text-[16px] font-semibold text-[var(--ink)]">{item.title}</h3>
+                  <p className="text-[14px] leading-[1.85] text-[var(--ink2)]">{item.body}</p>
+                </div>
+              </Reveal>
+            ))}
           </div>
         </div>
       </section>
@@ -236,7 +259,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                     </p>
                     <p className="text-[11px] sm:text-[13px] text-[var(--ink3)] leading-snug">{stat.description}</p>
                     {stat.caveat && (
-                      <p className="text-[11px] text-[#ccc] italic mt-1">* {stat.caveat}</p>
+                      <p className="text-[11px] text-[var(--ink2)] italic mt-1">* {stat.caveat}</p>
                     )}
                   </div>
                 </Reveal>
@@ -466,7 +489,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                       {activeTab === "problem" && "The problem was trust, not confusion"}
                       {activeTab === "solution" && "Persistent context, inline clarity, visual hierarchy"}
                       {activeTab === "challenge" && "Enterprise constraints shaped every decision"}
-                      {activeTab === "summary" && "From dreaded tool to trusted daily driver"}
+                      {activeTab === "summary" && "A more coherent scheduling workflow"}
                     </>
                   )}
                 </p>
@@ -480,7 +503,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                       {activeTab === "challenge" &&
                         "Built on an established design system across 12+ apps. Complex FAA/union business rules enforced in real-time. Compressed 2-week sprint cycles. Zero downtime tolerance for 10,000+ daily users."}
                       {activeTab === "summary" &&
-                        "CCS+ Trade Center went from the most-dreaded feature to the most-used. Every design decision was grounded in pilot research, validated through testing, and shipped within engineering constraints."}
+                        "The redesign connects profile-based filters, inline inspection, clearer deadhead indicators, and shared configuration patterns. Pilot feedback informs the story; the time-reduction estimate is not a controlled performance benchmark."}
                     </>
                   )}
                 </p>
@@ -652,7 +675,7 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                       </p>
                     ))}
                     <div className="p-5 bg-[var(--surface)] rounded-lg border-l-[3px] border-[var(--success)]">
-                      <p className="text-[14px] font-semibold text-[var(--ink)] mb-1">Impact</p>
+                      <p className="text-[14px] font-semibold text-[var(--ink)] mb-1">Design contribution</p>
                       <p className="text-[13px] text-[var(--ink2)] leading-relaxed">{dec.impact}</p>
                     </div>
                   </div>
@@ -759,6 +782,12 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
             backgroundSize: "24px 24px",
           }}
         />
+        <div className="relative z-10 mx-auto mb-8 max-w-[var(--max-w)]">
+          <h2 className="mb-4 font-[family-name:var(--font-instrument-serif)] text-[clamp(2rem,3.8vw,3.375rem)] leading-tight text-white">
+            Evidence, limits &amp; next steps.
+          </h2>
+          <p className="max-w-3xl text-[14px] leading-[1.85] text-white/75">{study.evidenceNote}</p>
+        </div>
         <div className="relative z-10 max-w-[var(--max-w)] mx-auto grid grid-cols-2 md:grid-cols-4 gap-px bg-white/7">
           {study.impact.map((m, i) => (
             <Reveal key={i} delay={i + 1} className="h-full">
@@ -767,11 +796,21 @@ export function CaseStudyPage({ study }: { study: CaseStudy }) {
                   {m.value}
                   {m.suffix && <sup className="text-[16px] sm:text-[24px] align-super">{m.suffix}</sup>}
                 </p>
-                <p className="text-[11px] sm:text-[13px] text-white/40 leading-snug">{m.label}</p>
-                {m.caveat && <p className="text-[11px] text-white/20 italic mt-1">* {m.caveat}</p>}
+                <p className="text-[11px] sm:text-[13px] text-white/75 leading-snug">{m.label}</p>
+                {m.caveat && <p className="text-[11px] text-white/70 italic mt-1">* {m.caveat}</p>}
               </div>
             </Reveal>
           ))}
+        </div>
+        <div className="relative z-10 mx-auto mt-10 grid max-w-[var(--max-w)] gap-8 border-t border-white/15 pt-8 md:grid-cols-2">
+          <div>
+            <h3 className="mb-3 text-[15px] font-semibold text-white">What I would measure next</h3>
+            <p className="text-[14px] leading-[1.85] text-white/75">{study.measurementPlan}</p>
+          </div>
+          <div>
+            <h3 className="mb-3 text-[15px] font-semibold text-white">Reflection</h3>
+            <p className="text-[14px] leading-[1.85] text-white/75">{study.reflection}</p>
+          </div>
         </div>
       </section>
     </>

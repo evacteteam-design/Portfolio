@@ -19,7 +19,7 @@ export function Footer() {
               Akhil Vanga
             </p>
             <p className="text-[13px] text-[var(--ink3)] mt-1">
-              AI-First Product Designer
+              Senior UX &amp; AI-First Product Designer
             </p>
           </div>
 

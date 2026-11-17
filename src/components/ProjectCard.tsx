@@ -76,6 +76,11 @@ export function ProjectCard({ project, index }: { project: CaseStudy; index: num
                   <p className="text-[11px] text-[var(--ink3)] mt-1 leading-snug max-w-[120px]">
                     {stat.description.split("—")[0].trim()}
                   </p>
+                  {stat.caveat && (
+                    <p className="mt-1 max-w-[140px] text-[11px] leading-snug text-[var(--ink2)]">
+                      {stat.caveat}
+                    </p>
+                  )}
                 </div>
               ))}
             </div>

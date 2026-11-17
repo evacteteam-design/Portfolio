@@ -6,11 +6,19 @@ import { Reveal } from "@/components/Reveal";
 const faqs = [
   {
     q: "What services do you offer?",
-    a: "I specialize in end-to-end product design for enterprise platforms — from research and strategy through high-fidelity UI, design systems, and engineering handoff. I also bring AI-integrated workflows and front-end development capability to compress delivery cycles.",
+    a: "I specialize in end-to-end product design for complex enterprise workflows, from problem framing and research through interaction design, UI, reusable patterns, and implementation detail. I also build React and TypeScript components and explore AI-assisted experiences.",
   },
   {
     q: "How does the design process work?",
-    a: "I use a hybrid, AI-first methodology. After defining the product strategy through research and OKR-alignment, I leverage MCP-powered pipelines and \"vibe coding\" to sync Figma designs directly to production code. This minimizes handoff friction and keeps development moving at sprint pace.",
+    a: "I start with the user's decision, the business context, and the constraints. I map the workflow, compare interaction approaches, prototype the critical paths, and document states and edge cases for delivery. AI can help explore and implement ideas, but design choices still need evidence and human judgment.",
+  },
+  {
+    q: "What kind of design role are you looking for?",
+    a: "I am seeking staff-level individual-contributor or hands-on UX lead opportunities. My experience centers on independent design ownership: framing complex problems, making interaction decisions, carrying work through delivery, and turning patterns into working systems. I am looking to bring that hands-on foundation to a wider product scope.",
+  },
+  {
+    q: "How should I read the outcomes in your case studies?",
+    a: "I distinguish what the design demonstrates from what has been measured. The CCS+ time-reduction figure is an estimate based on pilot feedback, not a controlled benchmark. Axiom CI's queue counts describe the screens shown, not proven adoption or financial recovery. Each study includes evidence limits and a proposed measurement plan.",
   },
   {
     q: "How long does a project usually take?",

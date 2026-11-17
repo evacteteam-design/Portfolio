@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "Akhil Vanga - Enterprise UX and AI-first product design";
+export const alt = "Akhil Vanga - Enterprise UX, powered by AI";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -23,7 +23,7 @@ export default function OpenGraphImage() {
           <div style={{ fontSize: 76, fontWeight: 700, color: "#79c5ff" }}>Powered by AI.</div>
         </div>
         <div style={{ display: "flex", justifyContent: "space-between", fontSize: 24 }}>
-          <span>Senior UX &amp; Product Designer</span>
+          <span>Senior UX &amp; AI-First Product Designer</span>
           <span>akhilvanga.com</span>
         </div>
       </div>
