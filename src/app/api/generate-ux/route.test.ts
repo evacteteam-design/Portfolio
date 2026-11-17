@@ -10,6 +10,8 @@ import { POST } from "./route";
 const envNames = [
   "OPENAI_API_KEY",
   "OPENAI_MODEL",
+  "TURNSTILE_SECRET_KEY",
+  "TURNSTILE_ALLOWED_HOSTNAMES",
   "UX_ARCHITECT_DAILY_LIMIT",
   "UX_ARCHITECT_VISITOR_LIMIT",
   "UX_ARCHITECT_ALLOW_MEMORY_STORE",
@@ -36,6 +38,7 @@ beforeEach(() => {
   for (const name of envNames) delete process.env[name];
   // The usage limits depend on NODE_ENV, so don't inherit it from whoever runs the tests.
   setNodeEnv("test");
+  process.env.UX_ARCHITECT_DAILY_LIMIT = "1000000";
   process.env.OPENAI_API_KEY = "test-key-not-a-real-credential";
   mock.method(console, "error", () => {});
   mock.method(console, "warn", () => {});
@@ -67,6 +70,7 @@ function request({
     body: JSON.stringify({
       idea: "An app for neighbors to borrow and lend gardening tools.",
       platform: "Mobile app",
+      turnstileToken: "test-turnstile-token",
     }),
   });
 }
@@ -76,6 +80,13 @@ function mockUpstashAndOpenAI(options: { upstashStatus?: number } = {}) {
   const counters = new Map<string, number>();
   let generations = 0;
   mock.method(globalThis, "fetch", async (input: string | URL | Request, init?: RequestInit) => {
+    if (String(input) === "https://challenges.cloudflare.com/turnstile/v0/siteverify") {
+      return Response.json({
+        success: true,
+        action: "ux_architect",
+        hostname: "www.akhilvanga.com",
+      });
+    }
     if (String(input).startsWith(upstashUrl)) {
       if (options.upstashStatus) {
         return new Response("Unavailable", { status: options.upstashStatus });
@@ -166,6 +177,7 @@ test("uses the documented OpenAI model and renders Responses API output as a val
   assert.equal(typeof options?.body, "string");
   const body = JSON.parse(String(options?.body));
   assert.equal(body.model, "gpt-5-mini");
+  assert.equal(body.max_output_tokens, 10_000);
   assert.equal(body.store, false);
   assert.deepEqual(body.reasoning, { effort: "medium" });
   assert.match(body.input, /gardening tools/);
@@ -477,6 +489,110 @@ test("ignores a limit setting that isn't a whole number instead of removing the 
   }
 });
 
+test("uses the stricter visitor and shared daily defaults", async () => {
+  delete process.env.UX_ARCHITECT_DAILY_LIMIT;
+  const visitor = await consumeVisitorLimit("openai-route-test-default-limit");
+  const budget = await consumeDailyBudget();
+  assert.equal(visitor.limit, 3);
+  assert.equal(budget.limit, 15);
+});
+
+test("does not allow environment overrides to raise the stricter quota ceilings", async () => {
+  setNodeEnv("production");
+  process.env.UX_ARCHITECT_ALLOW_MEMORY_STORE = "1";
+  process.env.UX_ARCHITECT_VISITOR_LIMIT = "10";
+  process.env.UX_ARCHITECT_DAILY_LIMIT = "360";
+  const visitor = await consumeVisitorLimit("openai-route-test-raised-limit");
+  const budget = await consumeDailyBudget();
+  assert.equal(visitor.limit, 3);
+  assert.equal(budget.limit, 15);
+});
+
+test("fails closed in production when Turnstile is not configured", async () => {
+  setNodeEnv("production");
+  const provider = mock.method(globalThis, "fetch");
+  const response = await POST(request());
+  assert.equal(response.status, 503);
+  assert.match((await response.json()).error, /temporarily unavailable/);
+  assert.equal(provider.mock.callCount(), 0);
+});
+
+test("rejects missing and invalid Turnstile tokens before contacting OpenAI", async () => {
+  setNodeEnv("production");
+  process.env.TURNSTILE_SECRET_KEY = "turnstile-test-secret";
+  process.env.TURNSTILE_ALLOWED_HOSTNAMES = "www.akhilvanga.com";
+  process.env.UX_ARCHITECT_ALLOW_MEMORY_STORE = "1";
+  const provider = mock.method(globalThis, "fetch", async (input: string | URL | Request) => {
+    if (String(input) === "https://challenges.cloudflare.com/turnstile/v0/siteverify") {
+      return Response.json({ success: false });
+    }
+    throw new Error("OpenAI must not be called for an invalid challenge.");
+  });
+
+  const missing = await POST(
+    new NextRequest("http://localhost/api/generate-ux", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-real-ip": "openai-route-test-no-token" },
+      body: JSON.stringify({
+        idea: "An app for neighbors to borrow and lend gardening tools.",
+        platform: "Mobile app",
+      }),
+    }),
+  );
+  assert.equal(missing.status, 403);
+
+  const invalid = await POST(request({ ip: "openai-route-test-invalid-token" }));
+  assert.equal(invalid.status, 403);
+  assert.match((await invalid.json()).error, /verification failed/);
+  assert.equal(provider.mock.callCount(), 1);
+});
+
+test("requires Turnstile success, the expected action, and an allowed hostname", async () => {
+  setNodeEnv("production");
+  process.env.TURNSTILE_SECRET_KEY = "turnstile-test-secret";
+  process.env.TURNSTILE_ALLOWED_HOSTNAMES = "www.akhilvanga.com";
+  process.env.UX_ARCHITECT_ALLOW_MEMORY_STORE = "1";
+  const verifications = [
+    { success: true, action: "other", hostname: "www.akhilvanga.com" },
+    { success: true, action: "ux_architect", hostname: "attacker.example" },
+  ];
+  let openAICalls = 0;
+  const calls: Array<{ url: string; body: Record<string, unknown> }> = [];
+  mock.method(globalThis, "fetch", async (input: string | URL | Request, init?: RequestInit) => {
+    const url = String(input);
+    if (url === "https://challenges.cloudflare.com/turnstile/v0/siteverify") {
+      const body = JSON.parse(String(init?.body)) as Record<string, unknown>;
+      calls.push({ url, body });
+      return Response.json(verifications.shift());
+    }
+    openAICalls += 1;
+    return Response.json(completedOutput(brief()));
+  });
+
+  for (const ip of ["openai-route-test-wrong-action", "openai-route-test-wrong-host"]) {
+    const response = await POST(request({ ip }));
+    assert.equal(response.status, 403);
+  }
+  assert.equal(openAICalls, 0);
+  assert.equal(calls.length, 2);
+  assert.equal(calls[0].body.secret, "turnstile-test-secret");
+  assert.equal(calls[0].body.response, "test-turnstile-token");
+  assert.equal("remoteip" in calls[0].body, false);
+});
+
+test("fails closed when Turnstile verification is unavailable", async () => {
+  setNodeEnv("production");
+  process.env.TURNSTILE_SECRET_KEY = "turnstile-test-secret";
+  process.env.TURNSTILE_ALLOWED_HOSTNAMES = "www.akhilvanga.com";
+  process.env.UX_ARCHITECT_ALLOW_MEMORY_STORE = "1";
+  const provider = mock.method(globalThis, "fetch", async () => {
+    throw new Error("Turnstile is unavailable.");
+  });
+  const response = await POST(request());
+  assert.equal(response.status, 503);
+  assert.equal(provider.mock.callCount(), 1);
+});
+
 test("requires a JSON content type so a cross-origin form can't spend a generation", async () => {
   const provider = mock.method(globalThis, "fetch", async () =>
     Response.json(completedOutput(brief())),
@@ -559,7 +675,13 @@ test("keeps generation switched off on Vercel until shared limit storage is conf
 });
 
 test("keeps generation switched off in production unless in-memory limits are chosen on purpose", async () => {
+  // Production clamps the shared budget to its small ceiling, so start a fresh window rather than
+  // inherit the in-memory count left by earlier tests.
+  const nextWindow = Date.now() + 2 * 24 * 60 * 60 * 1000;
+  mock.method(Date, "now", () => nextWindow);
   setNodeEnv("production");
+  process.env.TURNSTILE_SECRET_KEY = "turnstile-test-secret";
+  process.env.TURNSTILE_ALLOWED_HOSTNAMES = "www.akhilvanga.com";
   const services = mockUpstashAndOpenAI();
 
   const response = await POST(request());
@@ -591,11 +713,12 @@ test("keeps generation switched off in production unless in-memory limits are ch
 });
 
 test("tags each OpenAI request with a per-visitor identifier that can't be reversed to an address", async () => {
+  process.env.UX_ARCHITECT_VISITOR_LIMIT = "10";
   const provider = mock.method(globalThis, "fetch", async () =>
     Response.json(completedOutput(brief())),
   );
   async function identifierFor(ip: string) {
-    assert.equal((await POST(request({ ip }))).status, 200);
+    assert.equal((await POST(request({ ip }))).status, 200, `generation for ${ip}`);
     const options = provider.mock.calls.at(-1)?.arguments[1];
     return JSON.parse(String(options?.body)).safety_identifier as string;
   }

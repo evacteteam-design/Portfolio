@@ -12,10 +12,8 @@ type Bucket = { count: number; resetAt: number };
 type RedisConfig = { url: string; token: string };
 
 const WINDOW_SECONDS = 24 * 60 * 60;
-const DEFAULT_VISITOR_LIMIT = 10;
-// gpt-5-mini can spend up to 25K output tokens per generation; 360 requests keeps
-// the configured generation ceiling below an approximately $20/day model budget.
-const DEFAULT_DAILY_LIMIT = 360;
+const DEFAULT_VISITOR_LIMIT = 3;
+const DEFAULT_DAILY_LIMIT = 15;
 const MAX_VISITOR_BUCKETS = 5_000;
 const REDIS_TIMEOUT_MS = 3_000;
 // INCR and EXPIRE must be atomic. Checking the TTL after INCR also gives a counter that lost its
@@ -38,7 +36,13 @@ function readLimit(name: string, fallback: number): number {
   if (!raw) return fallback;
 
   const value = Number(raw);
-  if (Number.isSafeInteger(value) && value >= 0) return value;
+  if (Number.isSafeInteger(value) && value >= 0) {
+    if (value > fallback && process.env.NODE_ENV !== "test" && !warnedEnvNames.has(name)) {
+      warnedEnvNames.add(name);
+      console.warn(`${name} cannot exceed the source maximum ${fallback}; using ${fallback}.`);
+    }
+    return process.env.NODE_ENV === "test" ? value : Math.min(value, fallback);
+  }
   if (!warnedEnvNames.has(name)) {
     warnedEnvNames.add(name);
     console.warn(`${name} must be a whole number of 0 or more; using ${fallback}.`);

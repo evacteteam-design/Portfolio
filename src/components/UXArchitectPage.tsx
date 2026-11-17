@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
 import {
   FileDown,
   FlaskConical,
@@ -23,6 +23,7 @@ import {
   Toast,
 } from "@akhil-vanga/design-system";
 import { BriefLoadingScene } from "@/components/BriefLoadingScene";
+import { TurnstileChallenge } from "@/components/TurnstileChallenge";
 import { useSpeechDictation } from "@/hooks/useSpeechDictation";
 import {
   UX_PLATFORMS,
@@ -924,6 +925,8 @@ export function UXArchitectPage() {
   const [platform, setPlatform] = useState<UXPlatform>("Mobile app");
   const [brief, setBrief] = useState<BriefState | null>(null);
   const [loading, setLoading] = useState(false);
+  const [turnstileToken, setTurnstileToken] = useState("");
+  const [turnstileGeneration, setTurnstileGeneration] = useState(0);
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   // Each finished request nudges the loading scene so it doesn't open with the same joke twice.
@@ -967,6 +970,11 @@ export function UXArchitectPage() {
   const hasFreshDraft =
     !dictation.listening && idea.trim().length >= IDEA_MIN_LENGTH && (idea !== lastRequestedIdea || Boolean(error));
   const voiceUnavailable = dictation.ready && !dictation.supported;
+  const turnstileRequired = process.env.NODE_ENV === "production";
+
+  const handleTurnstileToken = useCallback((token: string) => {
+    setTurnstileToken(token);
+  }, []);
 
   function toggleDictation() {
     if (dictation.listening) return dictation.stop();
@@ -986,7 +994,15 @@ export function UXArchitectPage() {
   }
 
   async function requestBrief(requestedIdea: string) {
+    if (turnstileRequired && !turnstileToken) {
+      setError("Complete the security check before generating a brief.");
+      return;
+    }
+
     const requestedPlatform = platform;
+    const verificationToken = turnstileToken;
+    setTurnstileToken("");
+    if (turnstileRequired) setTurnstileGeneration((generation) => generation + 1);
     setLastRequestedIdea(requestedIdea);
     setVoiceNote("");
     setError("");
@@ -998,7 +1014,11 @@ export function UXArchitectPage() {
       const response = await fetch("/api/generate-ux", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idea: requestedIdea, platform: requestedPlatform }),
+        body: JSON.stringify({
+          idea: requestedIdea,
+          platform: requestedPlatform,
+          ...(turnstileRequired ? { turnstileToken: verificationToken } : {}),
+        }),
       });
       // Host timeouts can return non-JSON pages; fall back to a generic message.
       const payload: unknown = await response.json().catch(() => null);
@@ -1230,7 +1250,20 @@ export function UXArchitectPage() {
                     <option key={option} value={option}>{option}</option>
                   ))}
                 </SelectField>
-                <Button type="submit" size="lg" variant={hasFreshDraft || loading ? "primary" : "secondary"} loading={loading}>
+                {turnstileRequired && (
+                  <TurnstileChallenge
+                    key={turnstileGeneration}
+                    siteKey={process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? ""}
+                    onToken={handleTurnstileToken}
+                  />
+                )}
+                <Button
+                  type="submit"
+                  size="lg"
+                  variant={hasFreshDraft || loading ? "primary" : "secondary"}
+                  loading={loading}
+                  disabled={turnstileRequired && !turnstileToken}
+                >
                   Get answer &amp; UX brief
                 </Button>
                 <Button type="button" variant="ghost" onClick={loadSample}>
@@ -1248,6 +1281,8 @@ export function UXArchitectPage() {
                 Describe situations in general terms and leave out names, health details, and
                 other private information. Answers are general guidance, not professional advice.
                 This free demo limits how many briefs can be generated each day.
+                {turnstileRequired &&
+                  " Cloudflare Turnstile verifies requests to help prevent automated abuse."}
                 {dictation.supported &&
                   " Voice input is transcribed by your browser's speech service, which may process audio online."}
               </p>

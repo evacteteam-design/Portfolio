@@ -24,10 +24,11 @@ export const runtime = "nodejs";
 export const maxDuration = 60;
 
 const OPENAI_RESPONSES_URL = "https://api.openai.com/v1/responses";
+const TURNSTILE_VERIFY_URL = "https://challenges.cloudflare.com/turnstile/v0/siteverify";
 const DEFAULT_OPENAI_MODEL = "gpt-5-mini";
-// Reasoning tokens count toward max_output_tokens; OpenAI recommends reserving about 25K.
-const MAX_OUTPUT_TOKENS = 25_000;
+const MAX_OUTPUT_TOKENS = 10_000;
 const PROVIDER_TIMEOUT_MS = 55_000;
+const TURNSTILE_TIMEOUT_MS = 5_000;
 // Billing problems also return 429, but retrying won't help until credits or limits change.
 const BILLING_ERROR_CODES = new Set([
   "insufficient_quota",
@@ -39,6 +40,7 @@ const BILLING_ERROR_CODES = new Set([
 
 const MAX_BODY_BYTES = 12_000;
 const MAX_IDEA_LENGTH = 500;
+const MAX_TURNSTILE_TOKEN_LENGTH = 2_048;
 const JSON_CONTENT_TYPE = /^application\/json\s*(?:;|$)/i;
 const LOCAL_HOSTNAMES = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
@@ -124,6 +126,52 @@ function limiterUnavailable() {
     { error: "Generation is temporarily unavailable. Please try again." },
     { status: 503 },
   );
+}
+
+type TurnstileResult = {
+  success: boolean;
+  action?: string;
+  hostname?: string;
+};
+
+function getTurnstileHostnames(): string[] {
+  return (process.env.TURNSTILE_ALLOWED_HOSTNAMES ?? "")
+    .split(",")
+    .map((hostname) => hostname.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+async function verifyTurnstile(token: string, secret: string): Promise<TurnstileResult | null> {
+  try {
+    const response = await fetch(TURNSTILE_VERIFY_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ secret, response: token }),
+      signal: AbortSignal.timeout(TURNSTILE_TIMEOUT_MS),
+    });
+    if (!response.ok) throw new Error(`Turnstile returned status ${response.status}.`);
+
+    const payload: unknown = await response.json();
+    if (
+      typeof payload !== "object" ||
+      payload === null ||
+      !("success" in payload) ||
+      typeof payload.success !== "boolean"
+    ) {
+      throw new Error("Turnstile returned an invalid response.");
+    }
+    return {
+      success: payload.success,
+      action: "action" in payload && typeof payload.action === "string" ? payload.action : undefined,
+      hostname:
+        "hostname" in payload && typeof payload.hostname === "string"
+          ? payload.hostname.toLowerCase()
+          : undefined,
+    };
+  } catch (error) {
+    console.error("UX Architect: Turnstile verification failed:", error);
+    return null;
+  }
 }
 
 // Visitors only see a generic message, so the local dev server says which setting to fix instead.
@@ -220,7 +268,10 @@ export async function POST(request: NextRequest) {
     typeof body.idea !== "string" ||
     body.idea.trim().length < 10 ||
     body.idea.trim().length > MAX_IDEA_LENGTH ||
-    !isUXPlatform(body.platform)
+    !isUXPlatform(body.platform) ||
+    ("turnstileToken" in body &&
+      (typeof body.turnstileToken !== "string" ||
+        body.turnstileToken.length > MAX_TURNSTILE_TOKEN_LENGTH))
   ) {
     return NextResponse.json(
       { error: "Describe your idea or problem in 10–500 characters and choose a supported platform." },
@@ -237,7 +288,17 @@ export async function POST(request: NextRequest) {
   }
   const model = process.env.OPENAI_MODEL?.trim() || DEFAULT_OPENAI_MODEL;
 
-  // Only requests that would reach OpenAI count, so invalid input and a missing key use no quota.
+  const turnstileSecret = process.env.TURNSTILE_SECRET_KEY?.trim();
+  const turnstileHostnames = getTurnstileHostnames();
+  if (
+    process.env.NODE_ENV === "production" &&
+    (!turnstileSecret || turnstileHostnames.length === 0)
+  ) {
+    console.error("UX Architect: Turnstile is not configured for production.");
+    return limiterUnavailable();
+  }
+
+  // Count attempts before verification to bound requests made to the challenge provider too.
   const clientAddress = getClientAddress(request);
   const visitor = await checkLimit(() => consumeVisitorLimit(clientAddress));
   if (!visitor) return limiterUnavailable();
@@ -249,6 +310,25 @@ export async function POST(request: NextRequest) {
       },
       { status: 429, headers: { "Retry-After": String(visitor.retryAfterSeconds) } },
     );
+  }
+
+  if (process.env.NODE_ENV === "production") {
+    if (!turnstileSecret) return limiterUnavailable();
+    const token = "turnstileToken" in body ? body.turnstileToken : undefined;
+    if (typeof token !== "string" || token.length === 0) {
+      return NextResponse.json({ error: "Complete the security check and try again." }, { status: 403 });
+    }
+
+    const verification = await verifyTurnstile(token, turnstileSecret);
+    if (!verification) return limiterUnavailable();
+    if (
+      !verification.success ||
+      verification.action !== "ux_architect" ||
+      !verification.hostname ||
+      !turnstileHostnames.includes(verification.hostname)
+    ) {
+      return NextResponse.json({ error: "Security verification failed. Please try again." }, { status: 403 });
+    }
   }
 
   // The visitor check runs first so blocked visitors can't drain the budget shared by everyone.
