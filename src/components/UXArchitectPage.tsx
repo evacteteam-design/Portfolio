@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from "react";
+import Link from "next/link";
 import {
   FileDown,
   FlaskConical,
@@ -1076,6 +1077,15 @@ export function UXArchitectPage() {
               Talk through a product idea or a problem you&apos;re stuck on. Get a straight answer,
               then a testable UX starting point: audience hypotheses, an end-to-end journey, and
               annotated wireframe blueprints for a solution.
+            </p>
+            <p className="mt-4 max-w-2xl text-xs leading-relaxed text-white/70 sm:text-sm">
+              Independently designed and built by Akhil Vanga.{" "}
+              <Link
+                href="/#product-ownership"
+                className="font-medium text-white underline underline-offset-4 hover:text-[var(--accent-light)]"
+              >
+                See the product ownership behind this tool.
+              </Link>
             </p>
             <div className="mt-6 flex flex-wrap gap-2">
               <Badge tone="brand">

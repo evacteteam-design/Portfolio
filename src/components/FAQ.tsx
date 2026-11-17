@@ -13,8 +13,12 @@ const faqs = [
     a: "I start with the user's decision, the business context, and the constraints. I map the workflow, compare interaction approaches, prototype the critical paths, and document states and edge cases for delivery. AI can help explore and implement ideas, but design choices still need evidence and human judgment.",
   },
   {
-    q: "What kind of design role are you looking for?",
-    a: "I am seeking staff-level individual-contributor or hands-on UX lead opportunities. My experience centers on independent design ownership: framing complex problems, making interaction decisions, carrying work through delivery, and turning patterns into working systems. I am looking to bring that hands-on foundation to a wider product scope.",
+    q: "What kinds of roles are you looking for?",
+    a: "I am seeking staff-level design individual-contributor, hands-on UX lead, and Product Owner opportunities where problem framing and end-to-end delivery matter. My AI-first design practice remains central. Independently building UX Architect adds a concrete example of product definition, implementation, and operational decision-making.",
+  },
+  {
+    q: "What makes you a fit for Product Owner opportunities?",
+    a: "I independently designed and built UX Architect, defining its experience, connecting the AI service, and accounting for generation costs, usage limits, sample access, and failure states. That is hands-on product ownership beyond UI delivery. I am presenting it as relevant experience for Product Owner roles, not claiming a previous formal Product Owner title or team backlog-management experience.",
   },
   {
     q: "How should I read the outcomes in your case studies?",
@@ -69,6 +73,8 @@ export function FAQ() {
                   <div className="border-b border-[var(--border)]">
                     <button
                       onClick={() => setOpenIndex(openIndex === i ? null : i)}
+                      aria-expanded={openIndex === i}
+                      aria-controls={`faq-answer-${i}`}
                       className="w-full flex items-center justify-between py-6 text-left group"
                     >
                       <div className="flex items-start gap-3 sm:gap-5">
@@ -92,13 +98,16 @@ export function FAQ() {
                       </svg>
                     </button>
                     <div
-                      className={`overflow-hidden transition-all duration-400 ease-[var(--ease-out-expo)] ${
-                        openIndex === i ? "max-h-60 pb-6" : "max-h-0"
+                      id={`faq-answer-${i}`}
+                      className={`grid transition-[grid-template-rows] duration-400 ease-[var(--ease-out-expo)] ${
+                        openIndex === i ? "grid-rows-[1fr]" : "grid-rows-[0fr]"
                       }`}
                     >
-                      <p className="text-[13px] sm:text-[14px] text-[var(--ink2)] leading-[1.8] pl-8 sm:pl-11 pr-2 sm:pr-4">
-                        {faq.a}
-                      </p>
+                      <div className="min-h-0 overflow-hidden">
+                        <p className="pb-6 text-[13px] sm:text-[14px] text-[var(--ink2)] leading-[1.8] pl-8 sm:pl-11 pr-2 sm:pr-4">
+                          {faq.a}
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </Reveal>

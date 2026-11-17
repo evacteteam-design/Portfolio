@@ -24,12 +24,12 @@ const capabilities = [
   },
   {
     number: "2",
-    title: "End-to-End Design Ownership",
+    title: "Design & Product Ownership",
     items: [
-      "Work hands-on across research, information architecture, interaction design, high-fidelity UI, and delivery.",
-      "Translate complex requirements into clear flows, state models, and specifications that make design intent inspectable.",
+      "Own UX Architect from product definition and interaction design through a working interface and AI-service integration.",
+      "Translate a product idea into a focused experience: an answer, audience hypotheses, a journey, and wireframe blueprints.",
       "Document the reasoning behind decisions so the work can be discussed, challenged, and carried forward by others.",
-      "Take responsibility for coherence across the experience, not just the finish of a single screen.",
+      "Account for operational constraints as well as UX, including AI-generation limits, abuse protection, and clear failure states.",
     ],
   },
   {
@@ -419,6 +419,74 @@ export default function HomePage() {
         </div>
       </section>
 
+      <section
+        id="product-ownership"
+        aria-labelledby="product-ownership-title"
+        className="scroll-mt-24 border-t border-[var(--border)] bg-[var(--surface)] px-4 py-16 sm:px-6 sm:py-24 md:px-14"
+      >
+        <div className="mx-auto max-w-[var(--max-w)]">
+          <Reveal>
+            <p className="mb-4 text-[11px] font-semibold uppercase tracking-[0.14em] text-[var(--accent)]">
+              Product Ownership in Practice
+            </p>
+            <h2
+              id="product-ownership-title"
+              className="mb-6 max-w-3xl font-[family-name:var(--font-instrument-serif)] text-[clamp(2rem,3.8vw,3.375rem)] leading-[1.07] tracking-[-0.025em] text-[var(--black)]"
+            >
+              From idea to a working <em className="italic text-[var(--accent)]">AI product.</em>
+            </h2>
+            <p className="mb-8 max-w-3xl text-[14px] leading-[1.85] text-[var(--ink2)] sm:text-[16px]">
+              I independently designed and built UX Architect, taking responsibility for what the
+              tool does, how people use it, and how the experience connects to an AI service.
+              It demonstrates product ownership beyond the interface: defining scope, delivering
+              a usable product, and balancing utility with operational constraints.
+            </p>
+          </Reveal>
+
+          <div className="grid gap-4 sm:gap-6 lg:grid-cols-3">
+            {[
+              {
+                title: "Product definition",
+                body: "I scoped a focused path from an idea or problem to a quick answer, audience hypotheses, a user journey, and wireframe blueprints. The experience labels generated material as a starting point to validate, not completed research.",
+              },
+              {
+                title: "End-to-end delivery",
+                body: "I connected the input flow, AI-service integration, structured output, sample preview, and Markdown and JSON exports. The live tool makes the product decisions inspectable, rather than leaving them in a presentation.",
+              },
+              {
+                title: "Operational judgment",
+                body: "The product includes per-visitor usage limits, a shared daily generation budget, production bot verification, and explicit error states. A sample brief remains available without generating new AI output.",
+              },
+            ].map((item, i) => (
+              <Reveal key={item.title} delay={i + 1} className="h-full">
+                <div className="h-full rounded-xl border border-[var(--border)] bg-[var(--white)] p-5 sm:p-7">
+                  <h3 className="mb-3 text-[16px] font-semibold text-[var(--ink)]">{item.title}</h3>
+                  <p className="text-[14px] leading-[1.85] text-[var(--ink2)]">{item.body}</p>
+                </div>
+              </Reveal>
+            ))}
+          </div>
+
+          <Reveal>
+            <div className="mt-8 flex flex-col items-start gap-6 lg:flex-row lg:items-center lg:justify-between">
+              <p className="max-w-2xl text-[14px] leading-[1.85] text-[var(--ink2)]">
+                This hands-on ownership is the foundation I bring to Product Owner opportunities,
+                alongside senior design and UX leadership roles. My next validation priority is
+                whether people can turn a generated brief into a useful next step; product adoption
+                and business impact are not yet established here.
+              </p>
+              <Link
+                href="/ux-architect"
+                className="inline-flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-full bg-[var(--accent)] px-6 py-3 text-[12px] font-semibold text-white transition-colors hover:bg-[var(--accent-dark)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[var(--accent)]"
+              >
+                Explore the product I built
+                <ArrowUpRight className="size-4" aria-hidden="true" />
+              </Link>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       {/* ═══════════════════════════════════════════════════
           ABOUT ME — With animated counters
           ═══════════════════════════════════════════════════ */}
@@ -454,8 +522,8 @@ export default function HomePage() {
                   With over 12 years spanning aviation, healthcare, and government, I specialize in
                   transforming complex internal tools into coherent experiences. My experience has
                   primarily been as an individual design owner. I&apos;m now seeking staff-level
-                  individual-contributor or hands-on UX lead opportunities where I can bring that
-                  ownership and systems thinking to a wider scope.
+                  individual-contributor, hands-on UX lead, and Product Owner opportunities where
+                  I can bring that ownership and systems thinking to a wider scope.
                 </p>
               </Reveal>
 
@@ -766,8 +834,8 @@ export default function HomePage() {
               <Reveal delay={2}>
                 <p className="text-[16px] text-white/45 leading-relaxed mb-10">
                   Looking for a hands-on designer to own a complex problem from framing to delivery?
-                  I&apos;m interested in staff-level IC and hands-on UX lead opportunities across
-                  enterprise products, design systems, and responsible AI experiences.
+                  I&apos;m interested in staff-level design IC, hands-on UX lead, and Product Owner
+                  opportunities across enterprise products, design systems, and responsible AI experiences.
                 </p>
               </Reveal>
 

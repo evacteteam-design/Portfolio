@@ -3,10 +3,11 @@
 > Senior UX and AI-first Product Designer based in Sacramento, California, with 12+ years of experience across aviation, healthcare, and government. AI-first product design is the central theme, demonstrated by the live UX Architect tool, AI-assisted review workflows, end-to-end design ownership, and reusable systems.
 
 ## Scope and evidence
-The portfolio presents individual design ownership, not prior people-management experience. Akhil is seeking staff-level individual-contributor or hands-on UX lead opportunities; these are target roles, not claimed employment titles. The CCS+ time-reduction figure is a feedback-based estimate, and Axiom CI screen counts are illustrative workflow data rather than measured business outcomes.
+The portfolio presents individual design and product ownership, not prior people-management experience. Akhil is seeking staff-level design individual-contributor, hands-on UX lead, and Product Owner opportunities; these are target roles, not claimed employment titles. UX Architect was independently designed and built by Akhil, demonstrating product definition, delivery, and operational safeguards rather than a previous formal Product Owner title or team backlog-management experience. The CCS+ time-reduction figure is a feedback-based estimate, and Axiom CI screen counts are illustrative workflow data rather than measured business outcomes.
 
 ## Portfolio
 - [Home](https://www.akhilvanga.com/): Background, capabilities, selected work, and contact information.
+- [Product ownership](https://www.akhilvanga.com/#product-ownership): UX Architect as an example of independent product definition, end-to-end delivery, and operational judgment.
 - [CCS+ Trade Center](https://www.akhilvanga.com/work/ccs-trade-center): United Airlines pilot scheduling and trip-trading UX case study.
 - [Axiom CI](https://www.akhilvanga.com/work/axiom-ci): AI-assisted contract and invoice review, evidence, and commercial decisions.
 - [Design System](https://www.akhilvanga.com/design-system): Themeable React and TypeScript components, design tokens, and live examples.

@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 export const SITE_URL = "https://www.akhilvanga.com";
 export const SITE_TITLE = "Akhil Vanga - Senior UX & Product Designer in Sacramento";
 export const SITE_DESCRIPTION =
-  "Senior UX and AI-first Product Designer in Sacramento. Try UX Architect and explore enterprise UX, end-to-end design ownership, and reusable systems.";
+  "Senior UX and AI-first Product Designer in Sacramento. Explore enterprise UX, hands-on product ownership, and UX Architect, independently designed and built.";
 
 export function createPageMetadata({
   title,

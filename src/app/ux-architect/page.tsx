@@ -4,7 +4,7 @@ import { createPageMetadata } from "@/lib/seo";
 export const metadata = createPageMetadata({
   title: "UX Architect - AI-Powered UX Briefs",
   description:
-    "Bring a product idea or a problem. Get a straight answer, testable personas, a user journey, and a wireframe blueprint.",
+    "An AI UX tool independently designed and built by Akhil Vanga. Explore product ideas through answers, audience hypotheses, journeys, and wireframe blueprints.",
   path: "/ux-architect",
 });
 
